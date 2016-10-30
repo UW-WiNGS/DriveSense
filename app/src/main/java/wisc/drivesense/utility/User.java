@@ -7,6 +7,5 @@ public class User {
     public String firstname_;
     public String lastname_;
     public String email_;
-    public String password_;
     public int loginstatus_;
 }

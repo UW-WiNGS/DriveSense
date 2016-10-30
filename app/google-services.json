@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "83228343356",
+    "project_id": "drivesense-145620"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:83228343356:android:6a72ca15851bd074",
+        "android_client_info": {
+          "package_name": "wisc.drivesense"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "83228343356-2q7t6jf7s8cae72rm0l570eeg7uoaeqe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wisc.drivesense",
+            "certificate_hash": "F2B603DDFAE19CA3277D400079184F0BA96B00F1"
+          }
+        },
+        {
+          "client_id": "83228343356-mjp4ivgdg8rqulbpvab8m1kiq7j2fg13.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wisc.drivesense",
+            "certificate_hash": "F1:A8:E8:9F:97:AE:55:AD:35:81:92:F4:7F:D2:BA:35:A9:33:C4:DD"
+          }
+        },
+        {
+          "client_id": "83228343356-irimnre6pv18g9ubt07un5m0padlmjhn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "wisc.drivesense",
+            "certificate_hash": "EBFB015F70D328F3D404911AD75E9D3D40A31D1A"
+          }
+        },
+        {
+          "client_id": "83228343356-ooeejimtmb7cn3bsnkr06ve67nip7e6o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOCsAZ3Jbaq6-nSJ7GmXXqCGV6CRETguY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

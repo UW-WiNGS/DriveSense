@@ -27,7 +27,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
         <uses-library android:name="com.google.android.maps" />
-
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyBxY4N4dZYeojgrIIzkQU0I1e3YX4aSvRU" />
@@ -44,6 +44,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activity.UserActivity"/>
+
         <service
             android:name=".triprecorder.SensorService"
             android:enabled="true"
@@ -54,14 +56,6 @@
             android:exported="false" />
 
         <activity android:name=".activity.HistoryActivity" />
-
-        <activity
-            tools:replace="android:theme"
-            android:name="com.facebook.FacebookActivity"
-            android:configChanges=
-                "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:label="@string/app_name" />
 
         <receiver
             android:name=".uploader.NetworkStateReceiver"
@@ -89,10 +83,17 @@
             android:exported="true" />
 
         <activity android:name=".activity.SettingActivity" />
+
         <activity
-            android:name=".activity.UserActivity"
-            android:label="@string/title_activity_user"
-            android:configChanges="orientation|screenSize|keyboardHidden"></activity>
+            android:name="com.facebook.CustomTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/fb_login_protocol_scheme" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

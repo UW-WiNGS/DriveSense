@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.user:
-                showUser();
+                startActivity(new Intent(this, UserActivity.class));
                 return true;
 
             case R.id.settings:
@@ -290,11 +290,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void showHistory() {
         Intent intent = new Intent(this, HistoryActivity.class);
-        startActivity(intent);
-    }
-
-    public void showUser() {
-        Intent intent = new Intent(this, UserActivity.class);
         startActivity(intent);
     }
 

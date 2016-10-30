@@ -10,7 +10,6 @@
     <string name="title_activity_map">MapActivity</string>
     <string name="setting">Settings</string>
     <string name="title_activity_login">Sign in</string>
-    <string name="facebook_app_id">1788457604730877</string>
 
     <!-- Strings related to login -->
     <string name="user_name">User Name</string>
@@ -34,5 +33,10 @@
     <string name="view">View</string>
     <string name="delete">Delete</string>
     <string name="more">More...</string>
+    <string name="login_failed">Login failed: Make sure your email and password are correct.</string>
+    <string name="sign_in_description">Sign in/up to record history trips and automatically upload to website.</string>
 
+    <string name="facebook_app_id">1788457604730877</string>
+    <string name="google_server_client_id">83228343356-ooeejimtmb7cn3bsnkr06ve67nip7e6o.apps.googleusercontent.com</string>
+    <string name="fb_login_protocol_scheme">fb1788457604730877</string>
 </resources>

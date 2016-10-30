@@ -34,7 +34,7 @@ public class DatabaseHelper {
             + TABLE_META + "(starttime INTEGER, endtime INTEGER, distance REAL, score REAL, deleted INTEGER, uploaded INTEGER, email TEXT);";
     private static final String TABLE_USER = "user";
     private static final String CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_USER + "(email TEXT, firstname TEXT, lastname TEXT, password TEXT, loginstatus INTEGER);";
+            + TABLE_USER + "(email TEXT, firstname TEXT, lastname TEXT, loginstatus INTEGER);";
 
 
     // Table Names
@@ -347,14 +347,21 @@ public class DatabaseHelper {
 
 
 
-    //email TEXT, firstname TEXT, lastname TEXT, password TEXT, loginstatus INTEGER
+    //email TEXT, firstname TEXT, lastname TEXT, loginstatus INTEGER
     /* ========================== User Specific Database Operations =================================== */
-    public boolean newUser(User user) {
+
+    /**
+     * Create a new user and log them in immediately
+     * @param email User's email address
+     * @param firstname User's first name
+     * @param lastname User's last name
+     * @return Success or failure creating the user
+     */
+    public boolean newUser(String email, String firstname, String lastname) {
         ContentValues values = new ContentValues();
-        values.put("email", user.email_);
-        values.put("firstname", user.firstname_);
-        values.put("lastname", user.lastname_);
-        values.put("password", user.password_);
+        values.put("email", email);
+        values.put("firstname", firstname);
+        values.put("lastname", lastname);
         values.put("loginstatus", 1);
         meta_.insert(TABLE_USER, null, values);
         return true;
@@ -372,8 +379,7 @@ public class DatabaseHelper {
             user.email_ = cursor.getString(0);
             user.firstname_ = cursor.getString(1);
             user.lastname_ = cursor.getString(2);
-            user.password_ = cursor.getString(3);
-            user.loginstatus_ = cursor.getInt(4);
+            user.loginstatus_ = cursor.getInt(3);
             break;
         } while (cursor.moveToNext());
         return user;
@@ -387,15 +393,15 @@ public class DatabaseHelper {
         else return true;
     }
 
-    public boolean userLogin(User user) {
-        if(!hasUser(user.email_)) {
+    public boolean userLogin(String email) {
+        if(!hasUser(email)) {
             return false;
         }
         Log.d(TAG, "user login processing in database");
         ContentValues data = new ContentValues();
         data.put("loginstatus", 1);
         String where = "email = ? ";
-        String[] whereArgs = {user.email_};
+        String[] whereArgs = {email};
         try {
             meta_.update(TABLE_USER, data, where, whereArgs);
             return true;
@@ -407,14 +413,12 @@ public class DatabaseHelper {
 
     }
 
-    public boolean userLogout(User user) {
+    public boolean userLogout() {
         Log.d(TAG, "user logout processing in database");
         ContentValues data = new ContentValues();
         data.put("loginstatus", 0);
-        String where = "email = ? ";
-        String[] whereArgs = {user.email_};
         try {
-            meta_.update(TABLE_USER, data, where, whereArgs);
+            meta_.update(TABLE_USER, data, null, null);
             return true;
         } catch (Exception e) {
             return false;

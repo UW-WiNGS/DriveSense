@@ -59,7 +59,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
 
         ratingToolbar.setTitle("Your Trip");
-        ratingToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
+        ratingToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
         ratingToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
