@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
-import wisc.drivesense.utility.User;
+import wisc.drivesense.user.UserObject;
 
 /**
  * Created by lkang on 3/30/16.
@@ -76,7 +76,7 @@ public class UploaderService extends Service {
      * @param msg
      */
     private void nextTask(String msg) {
-        User user = dbHelper_.getCurrentUser();
+        UserObject user = dbHelper_.getCurrentUser();
         if(user == null) {
             //no one is signed in
             stopService();
@@ -219,7 +219,7 @@ public class UploaderService extends Service {
         }
 
         private String synchronizeDeletion(String tripnames) {
-            User user = dbHelper_.getCurrentUser();
+            UserObject user = dbHelper_.getCurrentUser();
             if(user == null) {
                 return null;
             }
@@ -244,7 +244,7 @@ public class UploaderService extends Service {
         }
 
         private String uploadTrip(String dbname) {
-            User user = dbHelper_.getCurrentUser();
+            UserObject user = dbHelper_.getCurrentUser();
             if (user == null) {
                 return null;
             }

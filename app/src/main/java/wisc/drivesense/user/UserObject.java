@@ -1,9 +1,9 @@
-package wisc.drivesense.utility;
+package wisc.drivesense.user;
 
 /**
  * Created by lkang on 6/8/16.
  */
-public class User {
+public class UserObject {
     public String firstname_;
     public String lastname_;
     public String email_;

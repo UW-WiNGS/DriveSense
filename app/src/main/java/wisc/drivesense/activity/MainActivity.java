@@ -30,6 +30,7 @@ import java.io.File;
 
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
+import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;

@@ -1,9 +1,7 @@
-package wisc.drivesense.fragment;
+package wisc.drivesense.user;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,16 +19,12 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import wisc.drivesense.R;
-import wisc.drivesense.activity.UserActivity;
-import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.uploader.GsonRequest;
 import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.DriveSenseToken;
 
 public class AuthLandingFragment extends Fragment {
     private final String TAG = "AuthLandingFragment";

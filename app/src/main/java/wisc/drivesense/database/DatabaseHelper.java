@@ -12,10 +12,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import wisc.drivesense.user.UserObject;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
-import wisc.drivesense.utility.User;
 
 
 public class DatabaseHelper {
@@ -131,7 +131,7 @@ public class DatabaseHelper {
         values.put("deleted", 0);
         values.put("uploaded", 0);
         //assign to current user
-        User user = this.getCurrentUser();
+        UserObject user = this.getCurrentUser();
         if(user != null) {
             values.put("email", user.email_);
         } else {
@@ -250,7 +250,7 @@ public class DatabaseHelper {
 
 
     public List<Trip> loadTrips() {
-        User user = this.getCurrentUser();
+        UserObject user = this.getCurrentUser();
         List<Trip> trips = new ArrayList<Trip>();
         String selectQuery = "";
         if(user == null) {
@@ -348,13 +348,13 @@ public class DatabaseHelper {
 
 
     //email TEXT, firstname TEXT, lastname TEXT, loginstatus INTEGER
-    /* ========================== User Specific Database Operations =================================== */
+    /* ========================== UserObject Specific Database Operations =================================== */
 
     /**
      * Create a new user and log them in immediately
-     * @param email User's email address
-     * @param firstname User's first name
-     * @param lastname User's last name
+     * @param email UserObject's email address
+     * @param firstname UserObject's first name
+     * @param lastname UserObject's last name
      * @return Success or failure creating the user
      */
     public boolean newUser(String email, String firstname, String lastname) {
@@ -366,8 +366,8 @@ public class DatabaseHelper {
         meta_.insert(TABLE_USER, null, values);
         return true;
     }
-    public User getCurrentUser() {
-        User user = null;
+    public UserObject getCurrentUser() {
+        UserObject user = null;
         String selectQuery = "SELECT  * FROM " + TABLE_USER + " WHERE loginstatus = 1;";
         Cursor cursor = meta_.rawQuery(selectQuery, null);
         cursor.moveToFirst();
@@ -375,7 +375,7 @@ public class DatabaseHelper {
             if(cursor.getCount() == 0) {
                 break;
             }
-            user = new User();
+            user = new UserObject();
             user.email_ = cursor.getString(0);
             user.firstname_ = cursor.getString(1);
             user.lastname_ = cursor.getString(2);

@@ -44,7 +44,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.UserActivity"/>
+        <activity android:name=".user.UserActivity"/>
 
         <service
             android:name=".triprecorder.SensorService"

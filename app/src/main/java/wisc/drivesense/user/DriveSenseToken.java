@@ -1,19 +1,8 @@
-package wisc.drivesense.utility;
+package wisc.drivesense.user;
 
 import android.util.Base64;
-import android.util.Log;
 
 import com.google.gson.Gson;
-
-import java.security.Key;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SigningKeyResolver;
-import io.jsonwebtoken.impl.DefaultClaims;
 
 /**
  * Created by peter on 10/28/16.

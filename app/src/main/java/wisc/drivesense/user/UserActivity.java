@@ -1,8 +1,7 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.user;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -25,14 +24,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
-import wisc.drivesense.fragment.AuthLandingFragment;
-import wisc.drivesense.fragment.UserProfileFragment;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
 import wisc.drivesense.uploader.GsonRequest;
 import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.DriveSenseToken;
 
 public class UserActivity extends AppCompatActivity {
     private final String TAG = "UserActivity";
