@@ -65,7 +65,6 @@ public class GsonRequest<T> extends Request<T> {
 
     @Override
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
-        Log.d(TAG, "Got a response");
         try {
             String json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
             return Response.success(mGson.fromJson(json, responseClass),
