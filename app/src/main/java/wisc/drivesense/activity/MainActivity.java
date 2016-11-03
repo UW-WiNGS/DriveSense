@@ -1,6 +1,7 @@
 
 package wisc.drivesense.activity;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -8,10 +9,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +30,10 @@ import android.widget.Toast;
 //import com.facebook.FacebookSdk;
 //import com.facebook.appevents.AppEventsLogger;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -49,12 +59,18 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvMile = null;
     private TextView tvTilt = null;
     private Button btnStart = null;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001);
 
         // Initializing Facebook Integration
 
@@ -67,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
 
 
-        android.support.v7.widget.Toolbar mToolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.maintoolbar);
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         setSupportActionBar(mToolbar);
 
         File dbDir = new File(Constants.kDBFolder);
@@ -77,6 +93,35 @@ public class MainActivity extends AppCompatActivity {
         addListenerOnButton();
         //FacebookSdk.sdkInitialize(getApplicationContext());
         //AppEventsLogger.activateApp(this);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
     }
 
 
@@ -84,29 +129,38 @@ public class MainActivity extends AppCompatActivity {
         private TripService.TripServiceBinder binder = null;
 
         public void onServiceConnected(ComponentName className, IBinder service) {
-            binder = ((TripService.TripServiceBinder)service);
+            binder = ((TripService.TripServiceBinder) service);
             curtrip_ = binder.getTrip();
         }
+
         public void onServiceDisconnected(ComponentName className) {
             binder = null;
         }
-    };
+    }
+
+    ;
     private Intent mTripServiceIntent = null;
     private ServiceConnection mTripConnection = null;
 
     protected void onStop() {
-        super.onStop();
+        super.onStop();// ATTENTION: This was auto-generated to implement the App Indexing API.
+// See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
         Log.d(TAG, "onSTop");
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.disconnect();
     }
 
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPuase");
-        if(mTripConnection != null) {
+        if (mTripConnection != null) {
             unbindService(mTripConnection);
         }
     }
+
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
@@ -130,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
 
-        if(SettingActivity.isAutoMode(MainActivity.this)) {
+        if (SettingActivity.isAutoMode(MainActivity.this)) {
             Toast.makeText(MainActivity.this, "Disable Auto Mode to Stop", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -155,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                if(SettingActivity.isAutoMode(MainActivity.this)) {
+                if (SettingActivity.isAutoMode(MainActivity.this)) {
                     Toast.makeText(MainActivity.this, "Disable Auto Mode in Settings", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -201,6 +255,23 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1001: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                        && (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
+                    //Start your service here
+                }
+            }
+        }
+    }
+
     private synchronized void startRunning() {
         Log.d(TAG, "start running");
 
@@ -209,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTripServiceIntent = new Intent(this, TripService.class);
         mTripConnection = new TripServiceConnection();
-        if(MainActivity.isServiceRunning(this, TripService.class) == false) {
+        if (MainActivity.isServiceRunning(this, TripService.class) == false) {
             Log.d(TAG, "Start driving detection service!!!");
             bindService(mTripServiceIntent, mTripConnection, Context.BIND_AUTO_CREATE);
             startService(mTripServiceIntent);
@@ -225,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
         tvMile.setText(String.format("%.2f", 0.00));
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
 
-        if(MainActivity.isServiceRunning(this, TripService.class) == true) {
+        if (MainActivity.isServiceRunning(this, TripService.class) == true) {
             Log.d(TAG, "Stop driving detection service!!!");
             stopService(mTripServiceIntent);
             unbindService(mTripConnection);
@@ -256,8 +327,8 @@ public class MainActivity extends AppCompatActivity {
             String message = intent.getStringExtra("trip");
             Trace trace = new Trace();
             trace.fromJson(message);
-            if(curtrip_ != null) {
-                if(trace.type.equals(Trace.GPS)) {
+            if (curtrip_ != null) {
+                if (trace.type.equals(Trace.GPS)) {
                     Log.d(TAG, "Got message: " + message);
                     curtrip_.addGPS(trace);
                     tvSpeed.setText(String.format("%.1f", curtrip_.getSpeed()));
@@ -267,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                         displayWarning();
                     }
                     */
-                } else if(trace.type.equals(Trace.ACCELEROMETER)) {
+                } else if (trace.type.equals(Trace.ACCELEROMETER)) {
                     tvTilt.setText(String.format("%.0f", curtrip_.getTilt()) + (char) 0x00B0);
                 }
             }
@@ -293,7 +364,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, HistoryActivity.class);
         startActivity(intent);
     }
-
 
 
     public static boolean isServiceRunning(Context context, Class running) {
