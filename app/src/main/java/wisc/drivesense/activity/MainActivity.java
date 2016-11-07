@@ -3,6 +3,7 @@ package wisc.drivesense.activity;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -27,13 +29,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-//import com.facebook.FacebookSdk;
-//import com.facebook.appevents.AppEventsLogger;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -59,11 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvMile = null;
     private TextView tvTilt = null;
     private Button btnStart = null;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,37 +83,12 @@ public class MainActivity extends AppCompatActivity {
             dbDir.mkdirs();
         }
         addListenerOnButton();
-        //FacebookSdk.sdkInitialize(getApplicationContext());
-        //AppEventsLogger.activateApp(this);
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
     }
 
 
@@ -143,14 +110,8 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection mTripConnection = null;
 
     protected void onStop() {
-        super.onStop();// ATTENTION: This was auto-generated to implement the App Indexing API.
-// See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        super.onStop();
         Log.d(TAG, "onSTop");
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.disconnect();
     }
 
     protected void onPause() {
@@ -219,6 +180,13 @@ public class MainActivity extends AppCompatActivity {
                     startRunning();
                     btnStart.setBackgroundResource(R.drawable.stop_button);
                     btnStart.setText(R.string.stop_button);
+                    if(true) {
+                        findViewById(R.id.textspeed).setVisibility(View.GONE);
+                        Fragment fragment = Fragment.instantiate(getApplicationContext(), MapViewFragment.class.getName());
+                        FragmentTransaction ft = getFragmentManager().beginTransaction();
+                        ft.replace(R.id.container, fragment);
+                        ft.commit();
+                    }
                 } else {
                     //Toast.makeText(MainActivity.this, "Service Stopped!", Toast.LENGTH_SHORT).show();
                     stopRunning();
@@ -316,6 +284,9 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
+    public void sendToRealTimeMapFragment(Trace gps) {
+//        mMapFrag.updateWTrace
+    }
     //
     /**
      * where we get the sensor data
@@ -330,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
             if (curtrip_ != null) {
                 if (trace.type.equals(Trace.GPS)) {
                     Log.d(TAG, "Got message: " + message);
+                    sendToRealTimeMapFragment(trace);
                     curtrip_.addGPS(trace);
                     tvSpeed.setText(String.format("%.1f", curtrip_.getSpeed()));
                     tvMile.setText(String.format("%.2f", curtrip_.getDistance() * Constants.kMeterToMile));

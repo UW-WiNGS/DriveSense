@@ -20,7 +20,14 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:layout_below="@+id/maintoolbar"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/btnstart" />
 
 
     <Button

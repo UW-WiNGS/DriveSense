@@ -58,7 +58,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/password_parent"
-                android:id="@+id/sign_in_button" />
+                android:id="@+id/sign_in_button"
+                android:theme="@style/DriveSense.Button" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -81,14 +82,17 @@
                         android:text="Connect With Google"
                         android:layout_height="match_parent"
                         android:layout_width="0dp"
-                        android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:theme="@style/DriveSense.Button" />
 
                     <Button
                         android:id="@+id/facebook_button"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:text="Connect with Facebook" />
+                        android:text="Connect with Facebook"
+                        android:theme="@style/DriveSense.Button"
+                        android:shadowColor="@color/com_facebook_blue"/>
 
                 </LinearLayout>
 
@@ -96,7 +100,8 @@
                     android:text="@string/sign_up"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/sign_up_button" />
+                    android:id="@+id/sign_up_button"
+                    android:theme="@style/DriveSense.Button"/>
 
             </LinearLayout>
         </RelativeLayout>
