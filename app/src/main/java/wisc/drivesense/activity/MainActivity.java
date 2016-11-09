@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static String TAG = "MainActivity";
-
+    private MapViewFragment mapFragment;
     private TextView tvSpeed = null;
     private TextView tvMile = null;
     private TextView tvTilt = null;
@@ -88,8 +88,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onStart() {
-        super.onStart();
+            super.onStart();
     }
+
 
 
     private class TripServiceConnection implements ServiceConnection {
@@ -180,13 +181,6 @@ public class MainActivity extends AppCompatActivity {
                     startRunning();
                     btnStart.setBackgroundResource(R.drawable.stop_button);
                     btnStart.setText(R.string.stop_button);
-                    if(true) {
-                        findViewById(R.id.textspeed).setVisibility(View.GONE);
-                        Fragment fragment = Fragment.instantiate(getApplicationContext(), MapViewFragment.class.getName());
-                        FragmentTransaction ft = getFragmentManager().beginTransaction();
-                        ft.replace(R.id.container, fragment);
-                        ft.commit();
-                    }
                 } else {
                     //Toast.makeText(MainActivity.this, "Service Stopped!", Toast.LENGTH_SHORT).show();
                     stopRunning();
@@ -246,6 +240,9 @@ public class MainActivity extends AppCompatActivity {
         //curtrip_ = new Trip(System.currentTimeMillis());
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("driving"));
 
+        if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
+            displayMapFragment();
+        }
         mTripServiceIntent = new Intent(this, TripService.class);
         mTripConnection = new TripServiceConnection();
         if (MainActivity.isServiceRunning(this, TripService.class) == false) {
@@ -255,11 +252,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void displayMapFragment() {
+        findViewById(R.id.textspeed).setVisibility(View.GONE);
+        mapFragment = MapViewFragment.newInstance();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container, mapFragment)
+                .commit();
+    }
+
+    private void hideMapFragment() {
+        findViewById(R.id.textspeed).setVisibility(View.VISIBLE);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .remove(mapFragment)
+                .commit();
+    }
+
     private synchronized void stopRunning() {
 
         Log.d(TAG, "Stopping live data..");
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-
+        hideMapFragment();
         tvSpeed.setText(String.format("%.1f", 0.0));
         tvMile.setText(String.format("%.2f", 0.00));
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);

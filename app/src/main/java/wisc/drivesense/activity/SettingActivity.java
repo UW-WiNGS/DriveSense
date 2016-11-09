@@ -33,6 +33,12 @@ public class SettingActivity extends AppCompatActivity {
         return cbValue;
     }
 
+    public static boolean showMapWhileDriving(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean showMap = sharedPref.getBoolean("showMap", false);
+        return showMap;
+    }
+
 
 
     public static class SettingsFragment extends PreferenceFragment {

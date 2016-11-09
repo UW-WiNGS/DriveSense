@@ -8,6 +8,11 @@
         android:defaultValue="false" />
 
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:title="Show map and location while driving"
+        android:key="showMap" />
+
     <EditTextPreference
         android:key="pre_id"
         android:summary="Your device id"
