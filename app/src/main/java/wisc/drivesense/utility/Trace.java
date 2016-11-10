@@ -5,112 +5,68 @@ import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
+
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-public class Trace implements Serializable {
+public abstract class Trace implements Serializable {
 
+    public static interface IVector {
+        public float[] values();
+        public void values(float[] v);
+    }
+    public static class Vector3 extends Trace implements IVector {
+        public float x, y, z;
+        @Override
+        public float[] values() {
+            return new float[] {x,y,z};
+        }
+        @Override
+        public void values(float[] v) {
+            x = v[0]; y = v[1]; z = v[2];
+        }
+    }
+    public static class Gyro extends Vector3 { }
+    public static class Accel extends Vector3 { }
+    public static class Magnetometer extends Vector3 { }
+    public static class Trip extends GPS {
+        public float tilt;
+        public float score;
+        public float brake;
+    }
+    public static  class GPS extends Trace {
+        public double lat;
+        public double lon;
+        public double speed;
+        public double alt;
+        public LatLng toLatLng() { return new LatLng(lat, lon); }
+    }
+    public static  class Rotation extends Trace implements IVector{
+        float[] matrix = new float[9];
+        @Override
+        public float[] values() {
+            return matrix.clone();
+        }
+        @Override
+        public void values(float[] v) {
+            matrix = v;
+        }
+    }
+    @Expose
     public long time;
-    public float [] values = null;
-    public int dim;
-    public String type = "none";
 
-
-    private static String TAG = "Trace";
-
-    public static String ACCELEROMETER = "accelerometer";
-    public static String GYROSCOPE = "gyroscope";
-    public static String MAGNETOMETER = "magnetometer";
-
-    public static String ROTATION_MATRIX = "rotation_matrix";
-    public static String GPS = "gps";
-
-
-    public Trace() {
-        time = 0;
-        dim = 3;
-        values = new float [dim];
+    public Trace copyTrace() {
+        Gson gson = new Gson();
+        return gson.fromJson(gson.toJson(this), this.getClass());
     }
 
-    public Trace(int d) {
-        time = 0;
-        dim = d;
-        values = new float [dim];
-    }
-
-    public void setValues(float x, float y, float z) {
-        values[0] = x;
-        values[1] = y;
-        values[2] = z;
-        dim = 3;
-    }
-
-
-    public void copyTrace(Trace trace) {
-        this.time = trace.time;
-        this.dim = trace.dim;
-        this.values = new float[dim];
-        for(int i = 0; i < dim; ++i) {
-            this.values[i] = trace.values[i];
-        }
-    }
-
-    /*
-    public String toString() {
-        String res = new String("");
-        res = res.concat(String.valueOf(time));
-        for(int i = 0; i < dim; ++i) {
-            res = res.concat(","+ String.valueOf(values[i]));
-        }
-        return res;
-    }
-    */
     public String toJson() {
-        StringWriter sw = new StringWriter();
-        JsonWriter writer = new JsonWriter(sw);
-
-        try {
-            writer.beginObject();
-            writer.name("type").value(type);
-            writer.name("time").value(time);
-            writer.name("dim").value(dim);
-            for (int i = 0; i < dim; ++i) {
-                writer.name("x" + String.valueOf(i)).value(values[i]);
-            }
-            writer.endObject();
-            writer.flush();
-        } catch (Exception e) {
-            Log.d(TAG, "convert to json failed");
-        }
-        return sw.toString();
-    }
-
-    public void fromJson(String json) {
-        StringReader sr = new StringReader(json);
-        JsonReader reader = new JsonReader(sr);
-        try {
-            reader.beginObject();
-            while (reader.hasNext()) {
-                String name = reader.nextName();
-                if (name.equals("type")) {
-                    type = reader.nextString();
-                } else if (name.equals("time")) {
-                    time = reader.nextLong();
-                } else if (name.equals("dim")) {
-                    dim = reader.nextInt();
-                    values = new float[dim];
-                } else if (name.contains("x")) {
-                    int index = Integer.valueOf(name.substring(1)).intValue();
-                    values[index] = (float)reader.nextDouble();
-                } else {
-                    reader.skipValue();
-                }
-            }
-            reader.endObject();
-        } catch (Exception e) {
-            Log.d(TAG, "read to json failed");
-        }
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
 }

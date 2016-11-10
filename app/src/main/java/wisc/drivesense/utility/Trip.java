@@ -1,5 +1,7 @@
 package wisc.drivesense.utility;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +17,9 @@ public class Trip implements Serializable {
     private double speed_ = 0.0;
     private double score_ = 10.0;
     private int status_ = 1;
-    private List<Trace> gps_;
-    private Trace start_ = null;
-    private Trace dest_ = new Trace();
+    private List<Trace.Trip> gps_;
+    private LatLng start_ = null;
+    private LatLng dest_ = null;
     private double tilt_;
 
     //private Rating rating = null;
@@ -27,7 +29,7 @@ public class Trip implements Serializable {
     //private DatabaseHelper dbHelper_ = null;
 
     public Trip (long time) {
-        gps_ = new ArrayList<Trace>();
+        gps_ = new ArrayList<Trace.Trip>();
         this.startTime_ = time;
         //rating = new Rating(this);
     }
@@ -55,8 +57,8 @@ public class Trip implements Serializable {
     public int getStatus() {return this.status_;}
 
 
-    public Trace getStartPoint() {return start_;}
-    public Trace getEndPoint() {return dest_;}
+    public LatLng getStartPoint() {return start_;}
+    public LatLng getEndPoint() {return dest_;}
 
 
 
@@ -69,15 +71,15 @@ public class Trip implements Serializable {
      *
      * @param trace
      */
-    public void addGPS(Trace trace) {
+    public void addGPS(Trace.GPS trace) {
 
-        gps_.add(trace);
+        if(trace instanceof Trace.Trip)
+            gps_.add((Trace.Trip)trace);
         if(start_ == null) {
-            start_ = new Trace();
-            start_.copyTrace(trace);
+            start_ = new LatLng(trace.lat, trace.lon);
         }
-        dest_.copyTrace(trace);
-        speed_ = trace.values[2];
+        dest_ = new LatLng(trace.lat, trace.lon);
+        speed_ = trace.speed;
         this.endTime_ = trace.time;
 
         int sz = gps_.size();
@@ -89,28 +91,28 @@ public class Trip implements Serializable {
     }
 
 
-    public void setGPSPoints(List<Trace> gps) {
+    public void setGPSPoints(List<Trace.Trip> gps) {
         int sz = gps.size();
         if(sz == 0) {
             return;
         }
         this.gps_ = gps;
-        this.start_ = gps.get(0);
-        this.dest_ = gps.get(sz - 1);
+        this.start_ = new LatLng(gps.get(0).lat, gps.get(0).lon);
+        this.dest_ = new LatLng(gps.get(sz - 1).lat, gps.get(sz - 1).lon);
     }
 
-    public List<Trace> getGPSPoints() {
+    public List<Trace.Trip> getGPSPoints() {
         return gps_;
     }
 
 
 
-    public static double distance(Trace gps0, Trace gps1) {
+    public static double distance(Trace.GPS gps0, Trace.GPS gps1) {
 
-        double lat1 = Math.toRadians(gps0.values[0]);
-        double lng1 = Math.toRadians(gps0.values[1]);
-        double lat2 = Math.toRadians(gps1.values[0]);
-        double lng2 = Math.toRadians(gps1.values[1]);
+        double lat1 = Math.toRadians(gps0.lat);
+        double lng1 = Math.toRadians(gps0.lon);
+        double lat2 = Math.toRadians(gps1.lat);
+        double lng2 = Math.toRadians(gps1.lon);
 
         double p1 = Math.cos(lat1)*Math.cos(lat2)*Math.cos(lng1-lng2);
         double p2 = Math.sin(lat1)*Math.sin(lat2);

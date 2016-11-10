@@ -39,6 +39,7 @@ import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trace;
+import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
 
@@ -238,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "start running");
 
         //curtrip_ = new Trip(System.currentTimeMillis());
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("driving"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
 
         if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
             displayMapFragment();
@@ -309,14 +310,13 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String message = intent.getStringExtra("trip");
-            Trace trace = new Trace();
-            trace.fromJson(message);
+            String message = intent.getStringExtra("trace");
+            Gson gson = new Gson();
+            Trace trace = gson.fromJson(message, TraceMessage.class).value;
             if (curtrip_ != null) {
-                if (trace.type.equals(Trace.GPS)) {
+                if (trace instanceof Trace.GPS) {
                     Log.d(TAG, "Got message: " + message);
                     sendToRealTimeMapFragment(trace);
-                    curtrip_.addGPS(trace);
                     tvSpeed.setText(String.format("%.1f", curtrip_.getSpeed()));
                     tvMile.setText(String.format("%.2f", curtrip_.getDistance() * Constants.kMeterToMile));
                     /*
@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                         displayWarning();
                     }
                     */
-                } else if (trace.type.equals(Trace.ACCELEROMETER)) {
+                } else if (trace instanceof Trace.Accel) {
                     tvTilt.setText(String.format("%.0f", curtrip_.getTilt()) + (char) 0x00B0);
                 }
             }

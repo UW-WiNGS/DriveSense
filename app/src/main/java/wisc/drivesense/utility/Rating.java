@@ -6,25 +6,31 @@ import java.io.Serializable;
  * Created by lkang on 4/20/16.
  */
 public class Rating implements Serializable {
-    private Trip trip_;
     private int counter_;
-    private Trace lastTrace_;
+    private Trace.GPS lastTrace_;
     private double lastSpeed_;
     private double score_ = 10.0;
 
     private static String TAG = "Rating";
 
-    public Rating(Trip trip) {
-        this.trip_ = trip;
+    public Rating() {
         lastSpeed_ = -1.0;
         lastTrace_ = null;
         counter_ = 0;
     }
 
-    public int readingData(Trace trace) {
-        if(!trace.type.equals(Trace.GPS)) {
-            return 0;
-        }
+    public Trace.Trip getRating(Trace.GPS trace) {
+        int brake = this.calculateBraking(trace);
+        //create a new trace for GPS, since we use GPS to capture driving behaviors
+        Trace.Trip ntrace = new Trace.Trip();
+        ntrace.time = trace.time;
+        ntrace.score = (float)score_;
+        ntrace.brake = (float)brake;
+        //ntrace.tilt = (float)tiltCal_.getTilt();
+        return ntrace;
+    }
+
+    private int calculateBraking(Trace.GPS trace) {
         if(lastTrace_ == null) {
             lastTrace_ = trace;
             return 0;
@@ -46,14 +52,11 @@ public class Rating implements Serializable {
         if(a < -2.5) {
             double curscore = 3.0 - Math.min(3.0, Math.abs(a));
             score_ = (score_ * (counter_ - 1) + curscore * 10.0)/counter_;
-            trip_.setScore(score_);
             return -1;
         } else {
             score_ = (score_ * (counter_ - 1) + 10.0)/counter_;
-            trip_.setScore(score_);
             return 0;
         }
-
     }
 
 

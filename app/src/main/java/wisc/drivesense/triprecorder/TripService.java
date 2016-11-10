@@ -11,6 +11,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,6 +20,7 @@ import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Rating;
 import wisc.drivesense.utility.Trace;
+import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
 public class TripService extends Service {
@@ -98,7 +101,7 @@ public class TripService extends Service {
         long time = System.currentTimeMillis();
         dbHelper_.createDatabase(time);
         curtrip_ = new Trip(time);
-        rating_ = new Rating(curtrip_);
+        rating_ = new Rating();
         tiltCal_ = new RealTimeTiltCalculation();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
@@ -114,9 +117,9 @@ public class TripService extends Service {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String message = intent.getStringExtra("trace");
-            Trace trace = new Trace();
-            trace.fromJson(message);
+            Gson gson = new Gson();
+            Trace trace = gson.fromJson(intent.getStringExtra("trace"),
+                    TraceMessage.class).value;
             tiltCal_.processTrace(trace);
             curtrip_.setTilt(tiltCal_.getTilt());
 
@@ -125,21 +128,16 @@ public class TripService extends Service {
                 lastGPS = trace.time;
             }
 
-            if(trace.type.compareTo(Trace.GPS) == 0) {
+            if(trace instanceof Trace.GPS) {
+                Trace.GPS gps = (Trace.GPS)trace;
                 Log.d(TAG, "Got message: " + trace.toJson());
 
-                if(trace.values[2] != 0.0) {
-                    lastSpeedNonzero = trace.time;
+                if(gps.speed != 0.0) {
+                    lastSpeedNonzero = gps.time;
                 }
-                lastGPS = trace.time;
+                lastGPS = gps.time;
 
-                trace = calculateTraceByGPS(trace);
-                curtrip_.addGPS(trace);
-                sendTrip(trace);
-            } else if(trace.type.compareTo(Trace.ACCELEROMETER) == 0) {
-                sendTrip(trace);
-            } else {
-
+                curtrip_.addGPS(gps);
             }
 
             long curtime = trace.time;
@@ -153,28 +151,5 @@ public class TripService extends Service {
             }
         }
 
-        private Trace calculateTraceByGPS(Trace trace) {
-            int brake = rating_.readingData(trace);
-            //create a new trace for GPS, since we use GPS to capture driving behaviors
-            Trace ntrace = new Trace(7);
-            ntrace.type = trace.type;
-            ntrace.time = trace.time;
-            System.arraycopy(trace.values, 0, ntrace.values, 0, trace.values.length);
-            ntrace.values[5] = ntrace.values[3];
-            ntrace.values[3] = (float)curtrip_.getScore();
-            ntrace.values[4] = (float)brake;
-            ntrace.values[6] = (float)tiltCal_.getTilt();
-            return ntrace;
-        }
     };
-
-    private void sendTrip(Trace trace) {
-        Intent intent = new Intent("driving");
-        intent.putExtra("trip", trace.toJson());
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
-
-
-
-
 }

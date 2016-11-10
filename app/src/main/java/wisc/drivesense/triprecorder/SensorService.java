@@ -1,8 +1,10 @@
 package wisc.drivesense.triprecorder;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -13,6 +15,7 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -56,14 +59,13 @@ public class SensorService extends Service implements SensorEventListener, Locat
     public void onLocationChanged(Location location) {
         Log.d(TAG, "location update speed:" + String.valueOf(location.getSpeed()));
         // TODO Auto-generated method stub
-        if(location != null){
-            Trace trace = new Trace(4);
+        if (location != null) {
+            Trace.Trip trace = new Trace.Trip();
             trace.time = System.currentTimeMillis();
-            trace.values[0] = (float) location.getLatitude();
-            trace.values[1] = (float) location.getLongitude();
-            trace.values[2] = location.getSpeed();
-            trace.values[3] = (float) location.getAltitude();
-            trace.type = Trace.GPS;
+            trace.lat = (float) location.getLatitude();
+            trace.lon = (float) location.getLongitude();
+            trace.speed = location.getSpeed();
+            trace.alt = (float) location.getAltitude();
 
             sendTrace(trace);
         }
@@ -96,33 +98,31 @@ public class SensorService extends Service implements SensorEventListener, Locat
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if(isRunning_.get()==false) {
+        if (isRunning_.get() == false) {
             return;
         }
 
         int type = event.sensor.getType();
         long time = System.currentTimeMillis();
-        if(type== Sensor.TYPE_MAGNETIC_FIELD && (time - tLastMagnetometer) >= Constants.kRecordingInterval) {
+        if (type == Sensor.TYPE_MAGNETIC_FIELD && (time - tLastMagnetometer) >= Constants.kRecordingInterval) {
             tLastMagnetometer = time;
             System.arraycopy(event.values, 0, mLastMagnetometer, 0, event.values.length);
             mLastMagnetometerSet = true;
 
-            Trace trace = new Trace(3);
+            Trace.Magnetometer trace = new Trace.Magnetometer();
             trace.time = time;
-            trace.type = Trace.MAGNETOMETER;
-            System.arraycopy(event.values, 0, trace.values, 0, event.values.length);
+            trace.values(event.values);
 
             sendTrace(trace);
 
-        } else if(type==Sensor.TYPE_ACCELEROMETER && (time - tLastAccelerometer) >= Constants.kRecordingInterval) {
+        } else if (type == Sensor.TYPE_ACCELEROMETER && (time - tLastAccelerometer) >= Constants.kRecordingInterval) {
             tLastAccelerometer = time;
             System.arraycopy(event.values, 0, mLastAccelerometer, 0, event.values.length);
             mLastAccelerometerSet = true;
 
-            Trace trace = new Trace(3);
+            Trace.Accel trace = new Trace.Accel();
             trace.time = time;
-            trace.type = Trace.ACCELEROMETER;
-            System.arraycopy(event.values, 0, trace.values, 0, event.values.length);
+            trace.values(event.values);
             sendTrace(trace);
 
         } else if (type == Sensor.TYPE_GYROSCOPE && (time - tLastGyroscope) >= Constants.kRecordingInterval) {
@@ -130,13 +130,10 @@ public class SensorService extends Service implements SensorEventListener, Locat
 
             tLastGyroscope = time;
 
-            Trace trace = new Trace(3);
+            Trace.Gyro trace = new Trace.Gyro();
             trace.time = time;
-            trace.type = Trace.GYROSCOPE;
-            System.arraycopy(event.values, 0, trace.values, 0, event.values.length);
+            trace.values(event.values);
             sendTrace(trace);
-
-        } else {
 
         }
 
@@ -146,10 +143,9 @@ public class SensorService extends Service implements SensorEventListener, Locat
             mLastMagnetometerSet = false;
             mLastAccelerometerSet = false;
 
-            Trace trace = new Trace(9);
+            Trace.Rotation trace = new Trace.Rotation();
             trace.time = time;
-            trace.type = Trace.ROTATION_MATRIX;
-            System.arraycopy(mR, 0, trace.values, 0, mR.length);
+            trace.values(event.values);
             sendTrace(trace);
         }
     }
@@ -183,21 +179,35 @@ public class SensorService extends Service implements SensorEventListener, Locat
     public void onDestroy() {
         Log.d(TAG, "stop service");
         sensorManager.unregisterListener(this);
-        locationManager.removeUpdates(this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this);
+        }
         isRunning_.set(false);
         stopSelf();
     }
 
     private void startService() {
         Log.d(TAG, "start service");
-        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-        for(int i = 0; i < numberOfSensors; ++i) {
+        for (int i = 0; i < numberOfSensors; ++i) {
             Sensor sensor = sensorManager.getDefaultSensor(sensorType[i]);
             sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        else
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         isRunning_.set(true);
     }
 

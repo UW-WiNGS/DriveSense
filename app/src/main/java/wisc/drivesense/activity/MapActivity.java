@@ -1,12 +1,15 @@
 package wisc.drivesense.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -38,10 +41,10 @@ import wisc.drivesense.utility.Trip;
 
 public class MapActivity extends Activity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
 
-    static final LatLng madison_ = new LatLng(43.073052 , -89.401230);
+    static final LatLng madison_ = new LatLng(43.073052, -89.401230);
     private GoogleMap map_ = null;
     private Trip trip_;
-    private List<Trace> points_;
+    private List<Trace.Trip> points_;
     private static String TAG = "MapActivity";
     private DatabaseHelper dbHelper_ = null;
 
@@ -69,7 +72,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
 
         Gson gson = new Gson();
         Log.d(TAG, gson.toJson(trip_));
-        if(trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
+        if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
             dbHelper_ = new DatabaseHelper();
             points_ = dbHelper_.getGPSPoints(trip_.getStartTime());
             trip_.setGPSPoints(points_);
@@ -98,7 +101,17 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
     public void onMapReady(GoogleMap map) {
         map_ = map;
         map_.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        map_.setMyLocationEnabled(true);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+        }
+        else
+            map_.setMyLocationEnabled(true);
         map_.setTrafficEnabled(true);
         map_.setIndoorEnabled(true);
         map_.setBuildingsEnabled(true);
@@ -108,7 +121,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         int sz = trip_.getGPSPoints().size();
 
         if(sz >= 2) {
-            start = new LatLng(trip_.getStartPoint().values[0], trip_.getStartPoint().values[1]);
+            start = trip_.getStartPoint();
         } else {
             start = madison_;
         }
@@ -184,10 +197,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         }
         //TODO: change it to display according to speed
         // remove zero points
-        ListIterator<Trace> it = points_.listIterator();
+        ListIterator<Trace.Trip> it = points_.listIterator();
         while (it.hasNext()) {
-            Trace cur = it.next();
-            if(cur.values[2] == 0.0) {
+            Trace.Trip cur = it.next();
+            if(cur.speed == 0.0) {
                 it.remove();
             }
         }
@@ -203,21 +216,19 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         // plot the route on the google map
         int rate = sz/1200 + 1;
         for (int i = 0; i < sz; i+=rate) {
-            Trace point = points_.get(i);
+            Trace.Trip point = points_.get(i);
 
             BitmapDescriptor bitmapDescriptor = null;
 
             if(index == 2) {
                 //speed
-                double speed = point.values[2];
-                bitmapDescriptor = bitmapDescriptors.get(Math.min((int) (speed / 5.0), colors.length - 1));
+                bitmapDescriptor = bitmapDescriptors.get(Math.min((int) (point.speed / 5.0), colors.length - 1));
             } else if(index == 3) {
                 //score
-                double score = point.values[3];
-                bitmapDescriptor = bitmapDescriptors.get(Math.min((int)(10.0 - score), colors.length - 1));
+                bitmapDescriptor = bitmapDescriptors.get(Math.min((int)(10.0 - point.score), colors.length - 1));
             } else {
                 //brake behaviors
-                double brake = point.values[4];
+                double brake = point.brake;
                 if(brake < 0) {
                     bitmapDescriptor = bitmapDescriptors.get(3);
                     //bitmapDescriptor =  BitmapDescriptorFactory.fromResource(R.drawable.attention_24);
@@ -226,16 +237,16 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
                 }
             }
 
-            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(point.values[0], point.values[1])).icon(bitmapDescriptor);
+            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(point.lat, point.lon)).icon(bitmapDescriptor);
             Marker marker = map_.addMarker(markerOptions);
             builder.include(marker.getPosition());
         }
 
         // market the starting and ending points
-        LatLng start = new LatLng(trip_.getStartPoint().values[0], trip_.getStartPoint().values[1]);
+        LatLng start = trip_.getStartPoint();
         MarkerOptions startOptions = new MarkerOptions().position(start).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_car));
         map_.addMarker(startOptions);
-        LatLng end = new LatLng(trip_.getEndPoint().values[0], trip_.getEndPoint().values[1]);
+        LatLng end = trip_.getEndPoint();
         MarkerOptions endOptions = new MarkerOptions().position(end);
         map_.addMarker(endOptions);
 

@@ -9,6 +9,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,23 +142,36 @@ public class DatabaseHelper {
         meta_.insert(TABLE_META, null, values);
     }
 
+    public static ContentValues objectToContentValues(Object o) throws IllegalAccessException {
+        ContentValues cv = new ContentValues();
+
+        for (Field field : o.getClass().getFields()) {
+            Object value = field.get(o);
+            //check if compatible with contentvalues
+            if (value instanceof Double || value instanceof Integer || value instanceof String || value instanceof Boolean
+                    || value instanceof Long || value instanceof Float || value instanceof Short) {
+                cv.put(field.getName(), value.toString());
+            }
+        }
+        return cv;
+    }
 
     public void insertSensorData(Trace trace) {
-        String type = trace.type;
-        ContentValues values = new ContentValues();
-        values.put(KEY_TIME, trace.time);
-        for(int i = 0; i < trace.dim; ++i) {
-            values.put(KEY_VALUES[i], trace.values[i]);
+        ContentValues values = null;
+        try {
+            values = objectToContentValues(trace);
+        } catch (IllegalAccessException e) {
+            return;
         }
-        if (type.equals(Trace.ROTATION_MATRIX)) {
+        if (trace instanceof Trace.Rotation) {
             db_.insert(TABLE_ROTATION_MATRIX, null, values);
-        } else if (type.equals(Trace.ACCELEROMETER)) {
+        } else if (trace instanceof Trace.Accel) {
             db_.insert(TABLE_ACCELEROMETER, null, values);
-        } else if (type.equals(Trace.GYROSCOPE)) {
+        } else if (trace instanceof Trace.Gyro) {
             db_.insert(TABLE_GYROSCOPE, null, values);
-        } else if (type.equals(Trace.MAGNETOMETER)) {
+        } else if (trace instanceof Trace.Trip) {
             db_.insert(TABLE_MAGNETOMETER, null, values);
-        } else if (type.equals(Trace.GPS)) {
+        } else if (trace instanceof Trace.Trip) {
             db_.insert(TABLE_GPS, null, values);
         } else {
             assert 0 == 1;
@@ -171,9 +185,9 @@ public class DatabaseHelper {
      * @param time the start time of a trip (also the name of the database)
      * @return a list of trace, or gps points
      */
-    public List<Trace> getGPSPoints(long time) {
+    public List<Trace.Trip> getGPSPoints(long time) {
         SQLiteDatabase tmpdb = SQLiteDatabase.openDatabase(Constants.kDBFolder + String.valueOf(time).concat(".db"), null, SQLiteDatabase.OPEN_READONLY);
-        List<Trace> res = new ArrayList<Trace>();
+        List<Trace.Trip> res = new ArrayList<Trace.Trip>();
         String selectQuery = "SELECT  * FROM " + TABLE_GPS;
         Cursor cursor = tmpdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
@@ -181,12 +195,12 @@ public class DatabaseHelper {
             if(cursor.getCount() == 0) {
                 break;
             }
-            Trace trace = new Trace(5);
+            Trace.Trip trace = new Trace.Trip();
             trace.time = cursor.getLong(0);
             for(int i = 0; i < 5; ++i) {
-                trace.values[i] = cursor.getFloat(i + 1);
+             //   trace.values[i] = cursor.getFloat(i + 1);
             }
-            trace.type = Trace.GPS;
+            //trace.type = Trace.GPS;
             res.add(trace);
         } while (cursor.moveToNext());
         tmpdb.close();
