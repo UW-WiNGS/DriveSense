@@ -368,7 +368,7 @@ public class DatabaseHelper {
     }
     public UserObject getCurrentUser() {
         UserObject user = null;
-        String selectQuery = "SELECT  * FROM " + TABLE_USER + " WHERE loginstatus = 1;";
+        String selectQuery = "SELECT  email, firstname, lastname, loginstatus FROM " + TABLE_USER + " WHERE loginstatus = 1;";
         Cursor cursor = meta_.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         do {
