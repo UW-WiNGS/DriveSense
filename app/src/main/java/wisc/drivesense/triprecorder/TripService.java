@@ -102,8 +102,6 @@ public class TripService extends Service {
         long time = System.currentTimeMillis();
         dbHelper_.createDatabase(time);
         curtrip_ = new Trip(time);
-        rating_ = new Rating();
-        tiltCal_ = new RealTimeTiltCalculation();
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
     }
@@ -121,8 +119,6 @@ public class TripService extends Service {
             String message = intent.getStringExtra("trace");
             Trace trace = GsonSingleton.fromJson(message, TraceMessage.class).value;
             if(trace == null) return;
-            tiltCal_.processTrace(trace);
-            curtrip_.setTilt(tiltCal_.getTilt());
 
             if(lastSpeedNonzero == 0 && lastGPS == 0) {
                 lastSpeedNonzero = trace.time;
@@ -139,6 +135,11 @@ public class TripService extends Service {
                 lastGPS = gps.time;
 
                 curtrip_.addGPS(gps);
+            }
+
+            if(trace instanceof Trace.Trip) {
+                curtrip_.setTilt(((Trace.Trip) trace).tilt);
+                curtrip_.setScore(((Trace.Trip) trace).score);
             }
 
             long curtime = trace.time;

@@ -17,6 +17,7 @@ import java.util.List;
 
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trip;
 
 public class HistoryActivity extends Activity {
@@ -59,7 +60,7 @@ public class HistoryActivity extends Activity {
 
                 Trip trip = adapter_.getItem(position);
                 Intent intent = new Intent(HistoryActivity.this, MapActivity.class);
-                intent.putExtra("Current Trip", trip);
+                intent.putExtra("Current Trip", GsonSingleton.toJson(trip));
                 startActivity(intent);
             }
 

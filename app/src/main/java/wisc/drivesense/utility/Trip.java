@@ -31,6 +31,7 @@ public class Trip implements Serializable {
     public Trip (long time) {
         gps_ = new ArrayList<Trace.Trip>();
         this.startTime_ = time;
+        this.endTime_ = time;
         //rating = new Rating(this);
     }
 

@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
+import wisc.drivesense.utility.Rating;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 
@@ -33,6 +34,9 @@ public class SensorService extends Service implements SensorEventListener, Locat
 
     private SensorManager sensorManager;
     private LocationManager locationManager;
+
+    private RealTimeTiltCalculation tiltCalc = new RealTimeTiltCalculation();
+    private Rating rating = new Rating(tiltCalc);
 
     int numberOfSensors = 3;
     int[] sensorType = {Sensor.TYPE_ACCELEROMETER,
@@ -62,14 +66,15 @@ public class SensorService extends Service implements SensorEventListener, Locat
         Log.d(TAG, "location update speed:" + String.valueOf(location.getSpeed()));
         // TODO Auto-generated method stub
         if (location != null) {
-            Trace.Trip trace = new Trace.Trip();
+            Trace.GPS trace = new Trace.GPS();
             trace.time = System.currentTimeMillis();
             trace.lat = (float) location.getLatitude();
             trace.lon = (float) location.getLongitude();
             trace.speed = location.getSpeed();
             trace.alt = (float) location.getAltitude();
 
-            sendTrace(trace);
+            //TODO: Maybe generate ratings separately
+            sendTrace(rating.getRating(trace));
         }
 
     }
@@ -214,6 +219,7 @@ public class SensorService extends Service implements SensorEventListener, Locat
     }
 
     private void sendTrace(Trace trace) {
+        tiltCalc.processTrace(trace);
         //Log.d(TAG, trace.toJson());
         Intent intent = new Intent("sensor");
         intent.putExtra("trace", GsonSingleton.toJson(new TraceMessage(trace)));

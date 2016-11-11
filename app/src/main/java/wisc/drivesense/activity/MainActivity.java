@@ -337,10 +337,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void showDriveRating() {
         Log.d(TAG, "in showDriveRating");
-        Gson gson = new Gson();
-        Log.d(TAG, gson.toJson(curtrip_));
+        String trip_string = GsonSingleton.toJson(curtrip_);
+        Log.d(TAG, trip_string);
         Intent intent = new Intent(this, MapActivity.class);
-        intent.putExtra("Current Trip", curtrip_);
+        intent.putExtra("Current Trip", trip_string);
         startActivity(intent);
     }
 

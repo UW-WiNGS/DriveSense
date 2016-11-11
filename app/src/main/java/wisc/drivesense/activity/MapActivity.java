@@ -36,6 +36,7 @@ import java.util.ListIterator;
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
@@ -57,7 +58,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         Log.d(TAG, "onCreate");
 
         Intent intent = getIntent();
-        trip_ = (Trip) intent.getSerializableExtra("Current Trip");
+        trip_ = GsonSingleton.fromJson(intent.getStringExtra("Current Trip"), Trip.class);
 
         Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
 

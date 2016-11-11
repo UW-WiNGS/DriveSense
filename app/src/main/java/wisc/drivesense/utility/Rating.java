@@ -2,10 +2,13 @@ package wisc.drivesense.utility;
 
 import java.io.Serializable;
 
+import wisc.drivesense.triprecorder.RealTimeTiltCalculation;
+
 /**
  * Created by lkang on 4/20/16.
  */
 public class Rating implements Serializable {
+    private RealTimeTiltCalculation tiltCalc;
     private int counter_;
     private Trace.GPS lastTrace_;
     private double lastSpeed_;
@@ -13,20 +16,22 @@ public class Rating implements Serializable {
 
     private static String TAG = "Rating";
 
-    public Rating() {
+    public Rating(RealTimeTiltCalculation tiltCalc) {
         lastSpeed_ = -1.0;
         lastTrace_ = null;
         counter_ = 0;
+        this.tiltCalc = tiltCalc;
     }
 
     public Trace.Trip getRating(Trace.GPS trace) {
         int brake = this.calculateBraking(trace);
+        tiltCalc.processTrace(trace);
         //create a new trace for GPS, since we use GPS to capture driving behaviors
-        Trace.Trip ntrace = new Trace.Trip();
+        Trace.Trip ntrace = trace.copyTrace(Trace.Trip.class);
         ntrace.time = trace.time;
         ntrace.score = (float)score_;
         ntrace.brake = (float)brake;
-        //ntrace.tilt = (float)tiltCal_.getTilt();
+        ntrace.tilt = (float)tiltCalc.getTilt();
         return ntrace;
     }
 

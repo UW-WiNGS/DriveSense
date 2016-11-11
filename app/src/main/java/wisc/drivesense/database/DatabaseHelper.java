@@ -130,7 +130,7 @@ public class DatabaseHelper {
     public List<Trace.Trip> getGPSPoints(long time) {
         SQLiteDatabase tmpdb = SQLiteDatabase.openDatabase(Constants.kDBFolder + String.valueOf(time).concat(".db"), null, SQLiteDatabase.OPEN_READONLY);
         List<Trace.Trip> res = new ArrayList<Trace.Trip>();
-        String selectQuery = "SELECT  * FROM " + TABLE_TRACE + "WHERE value = " + Trace.Trip.class.getSimpleName();
+        String selectQuery = "SELECT  * FROM " + TABLE_TRACE + " WHERE type = '" + Trace.Trip.class.getSimpleName() + "'";
         Cursor cursor = tmpdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         do {

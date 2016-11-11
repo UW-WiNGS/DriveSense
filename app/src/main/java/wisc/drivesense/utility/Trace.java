@@ -10,6 +10,7 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.Serializable;
 import java.io.StringReader;
@@ -35,7 +36,7 @@ public abstract class Trace implements Serializable {
     public static class Gyro extends Vector3 { }
     public static class Accel extends Vector3 { }
     public static class Magnetometer extends Vector3 { }
-    public static class Trip extends GPS {
+    public static class Trip extends GPS implements Serializable{
         public float tilt;
         public float score;
         public float brake;
@@ -60,10 +61,13 @@ public abstract class Trace implements Serializable {
     }
     @Expose
     public long time;
-
     public Trace copyTrace() {
+        return copyTrace(this.getClass());
+    }
+    public <T extends Trace> T copyTrace(Class<T> type) {
         Gson gson = new Gson();
-        return gson.fromJson(gson.toJson(this), this.getClass());
+        String m = gson.toJson(this);
+        return gson.fromJson(m, type);
     }
 
     public String toJson() {
