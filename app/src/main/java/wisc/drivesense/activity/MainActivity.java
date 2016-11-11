@@ -262,11 +262,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void hideMapFragment() {
-        findViewById(R.id.textspeed).setVisibility(View.VISIBLE);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .remove(mapFragment)
-                .commit();
+        if(mapFragment != null) {
+            findViewById(R.id.textspeed).setVisibility(View.VISIBLE);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .remove(mapFragment)
+                    .commit();
+        }
+        mapFragment = null;
     }
 
     private synchronized void stopRunning() {
