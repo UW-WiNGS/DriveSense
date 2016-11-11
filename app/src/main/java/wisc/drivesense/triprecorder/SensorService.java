@@ -22,7 +22,9 @@ import android.util.Log;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
+import wisc.drivesense.utility.TraceMessage;
 
 public class SensorService extends Service implements SensorEventListener, LocationListener {
 
@@ -214,7 +216,7 @@ public class SensorService extends Service implements SensorEventListener, Locat
     private void sendTrace(Trace trace) {
         //Log.d(TAG, trace.toJson());
         Intent intent = new Intent("sensor");
-        intent.putExtra("trace", trace.toJson());
+        intent.putExtra("trace", GsonSingleton.toJson(new TraceMessage(trace)));
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }

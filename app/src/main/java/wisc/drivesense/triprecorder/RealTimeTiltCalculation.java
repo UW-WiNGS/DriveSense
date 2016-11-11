@@ -11,17 +11,13 @@ import wisc.drivesense.utility.Trace;
 
 public class RealTimeTiltCalculation {
 	private static final String TAG = "RealTimeTiltCalculation";
-
-	public RealTimeTiltCalculation() {
-		
-	}
 	
 	private List<Trace.Accel> window_accelerometer = new LinkedList<Trace.Accel>();
 	private List<Trace.Gyro> window_gyroscope = new LinkedList<Trace.Gyro>();
 	private List<Trace.Rotation> window_rotation_matrix = new LinkedList<Trace.Rotation>();
 	private Trace.Accel curSmoothedAccelerometer = null;
 	private Trace.Gyro curSmoothedGyroscope = null;
-	final int kWindowSize = 10;
+	private final int kWindowSize = 10;
 		
 	private double curTilt = 0.0;
 	
@@ -42,8 +38,6 @@ public class RealTimeTiltCalculation {
 			if(window_rotation_matrix.size() > kWindowSize) {
 				window_rotation_matrix.remove(0);
 			}
-		} else {
-			//Log.e(TAG, trace.toString());
 		}
 	}
 	

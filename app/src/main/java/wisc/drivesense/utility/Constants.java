@@ -43,8 +43,8 @@ public class Constants {
     public static final String kDBFolder = "/data/data/wisc.drivesense/databases/";
 
     public static final int kNumberOfTripsDisplay = 20;
-    public static final double kTripMinimumDuration = 1.0; //mins
-    public static final double kTripMinimumDistance = 1000; //meter
+    public static final double kTripMinimumDuration = 0; //mins
+    public static final double kTripMinimumDistance = 0; //meter
 
 
     public static final double kExponentialMovingAverageAlpha = 0.4;//0.3;

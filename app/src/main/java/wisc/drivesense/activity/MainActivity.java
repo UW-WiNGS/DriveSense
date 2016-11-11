@@ -38,6 +38,7 @@ import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
@@ -311,8 +312,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("trace");
-            Gson gson = new Gson();
-            Trace trace = gson.fromJson(message, TraceMessage.class).value;
+            Trace trace = GsonSingleton.fromJson(message, TraceMessage.class).value;
             if (curtrip_ != null) {
                 if (trace instanceof Trace.GPS) {
                     Log.d(TAG, "Got message: " + message);

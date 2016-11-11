@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Rating;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -117,9 +118,9 @@ public class TripService extends Service {
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Gson gson = new Gson();
-            Trace trace = gson.fromJson(intent.getStringExtra("trace"),
-                    TraceMessage.class).value;
+            String message = intent.getStringExtra("trace");
+            Trace trace = GsonSingleton.fromJson(message, TraceMessage.class).value;
+            if(trace == null) return;
             tiltCal_.processTrace(trace);
             curtrip_.setTilt(tiltCal_.getTilt());
 

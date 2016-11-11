@@ -16,7 +16,7 @@ import java.util.Map;
  * Created by Alex Sherman on 11/10/2016.
  */
 
-public class Serialize implements JsonDeserializer<TraceMessage> {
+public class GsonSingleton implements JsonDeserializer<TraceMessage> {
     private static Gson _gson;
 
     private static final Map<String, Type> typeLookup;
@@ -28,12 +28,14 @@ public class Serialize implements JsonDeserializer<TraceMessage> {
         typeLookup.put(Trace.Trip.class.getSimpleName(), Trace.Trip.class);
         typeLookup.put(Trace.Accel.class.getSimpleName(), Trace.Accel.class);
         typeLookup.put(Trace.Gyro.class.getSimpleName(), Trace.Gyro.class);
+        typeLookup.put(Trace.Rotation.class.getSimpleName(), Trace.Rotation.class);
+        typeLookup.put(Trace.Magnetometer.class.getSimpleName(), Trace.Magnetometer.class);
     }
 
     public static Gson gson() {
         if(_gson == null) {
             GsonBuilder b = new GsonBuilder();
-            b.registerTypeAdapter(TraceMessage.class, new Serialize());
+            b.registerTypeAdapter(TraceMessage.class, new GsonSingleton());
             _gson = b.create();
         }
         return _gson;
@@ -43,6 +45,9 @@ public class Serialize implements JsonDeserializer<TraceMessage> {
         return gson().toJson(o);
     }
     public static Object fromJson(String j, Type t) {
+        return gson().fromJson(j, t);
+    }
+    public static <T> T fromJson(String j, Class<T> t) {
         return gson().fromJson(j, t);
     }
 

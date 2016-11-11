@@ -1,10 +1,8 @@
 package wisc.drivesense;
 
-import com.google.gson.Gson;
-
 import org.junit.Test;
 
-import wisc.drivesense.utility.Serialize;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 
@@ -20,8 +18,8 @@ public class TraceTest {
         p.tilt = 3;
         p.score = -10;
         TraceMessage m = new TraceMessage(p);
-        String output = Serialize.toJson(m);
-        assertTrue(m.equals(Serialize.fromJson(output, TraceMessage.class)));
+        String output = GsonSingleton.toJson(m);
+        assertTrue(m.equals(GsonSingleton.fromJson(output, TraceMessage.class)));
     }
     @Test
     public void serializeGPS() {
@@ -29,7 +27,7 @@ public class TraceTest {
         p.lat = 40;
         p.lon = 36;
         TraceMessage m = new TraceMessage(p);
-        String output = Serialize.toJson(m);
-        assertTrue(m.equals(Serialize.fromJson(output, TraceMessage.class)));
+        String output = GsonSingleton.toJson(m);
+        assertTrue(m.equals(GsonSingleton.fromJson(output, TraceMessage.class)));
     }
 }

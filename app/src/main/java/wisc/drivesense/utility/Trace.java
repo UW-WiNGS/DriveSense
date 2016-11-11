@@ -1,6 +1,8 @@
 package wisc.drivesense.utility;
 
 
+import android.content.ContentValues;
+import android.support.v4.content.res.TypedArrayUtils;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
@@ -39,10 +41,10 @@ public abstract class Trace implements Serializable {
         public float brake;
     }
     public static  class GPS extends Trace {
-        public double lat;
-        public double lon;
-        public double speed;
-        public double alt;
+        public float lat;
+        public float lon;
+        public float speed;
+        public float alt;
         public LatLng toLatLng() { return new LatLng(lat, lon); }
     }
     public static  class Rotation extends Trace implements IVector{
@@ -65,8 +67,7 @@ public abstract class Trace implements Serializable {
     }
 
     public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
+        return GsonSingleton.toJson(this);
     }
 
 }

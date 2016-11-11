@@ -29,7 +29,7 @@ public class TraceMessage {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof TraceMessage) {
-            return Serialize.toJson(this).equals(Serialize.toJson(obj));
+            return GsonSingleton.toJson(this).equals(GsonSingleton.toJson(obj));
         }
         return super.equals(obj);
     }

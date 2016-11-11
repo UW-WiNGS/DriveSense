@@ -15,7 +15,9 @@ import java.util.List;
 
 import wisc.drivesense.user.UserObject;
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
+import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
 
@@ -39,43 +41,14 @@ public class DatabaseHelper {
 
 
     // Table Names
-    private static final String TABLE_ACCELEROMETER = "accelerometer";
-    private static final String TABLE_GYROSCOPE = "gyroscope";
-    private static final String TABLE_MAGNETOMETER = "magnetometer";
-    private static final String TABLE_ROTATION_MATRIX = "rotation_matrix";
-    private static final String TABLE_GPS = "gps";
-
-
-    private static final String KEY_TIME = "time";
-
-    /*rotation matrix*/
-    private static final String KEY_VALUES[] = {"x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"};
+    private static final String TABLE_TRACE = "trace";
 
 
     // Table Create Statements
 
-    private static final String CREATE_TABLE_GPS = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_GPS + "(" + KEY_TIME + " INTEGER PRIMARY KEY," + KEY_VALUES[0] + " REAL,"
-            + KEY_VALUES[1] + " REAL," +  KEY_VALUES[2] + " REAL," + KEY_VALUES[3] + " REAL,"
-            + KEY_VALUES[4] + " REAL," + KEY_VALUES[5] + " REAL, " + KEY_VALUES[6] + " REAL"
+    private static final String CREATE_TABLE_TRACE= "CREATE TABLE IF NOT EXISTS "
+            + TABLE_TRACE + "(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, value TEXT, synced INTEGER"
             + ");";
-    private static final String CREATE_TABLE_ACCELEROMETER = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_ACCELEROMETER + "(" + KEY_TIME + " INTEGER PRIMARY KEY," + KEY_VALUES[0]
-            + " REAL," + KEY_VALUES[1] + " REAL," +  KEY_VALUES[2] + " REAL" + ");";
-    private static final String CREATE_TABLE_GYROSCOPE = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_GYROSCOPE + "(" + KEY_TIME + " INTEGER PRIMARY KEY," + KEY_VALUES[0]
-            + " REAL," + KEY_VALUES[1] + " REAL," +  KEY_VALUES[2] + " REAL" + ");";
-    private static final String CREATE_TABLE_MAGNETOMETER = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_MAGNETOMETER + "(" + KEY_TIME + " INTEGER PRIMARY KEY," + KEY_VALUES[0]
-            + " REAL," + KEY_VALUES[1] + " REAL," +  KEY_VALUES[2] + " REAL" + ");";
-
-
-    private static final String CREATE_TABLE_ROTATION_MATRIX = "CREATE TABLE IF NOT EXISTS "
-            + TABLE_ROTATION_MATRIX + "(" + KEY_TIME + " INTEGER PRIMARY KEY,"
-            + KEY_VALUES[0] + " REAL," + KEY_VALUES[1] + " REAL," +  KEY_VALUES[2] + " REAL,"
-            + KEY_VALUES[3] + " REAL," + KEY_VALUES[4] + " REAL," +  KEY_VALUES[5] + " REAL,"
-            + KEY_VALUES[6] + " REAL," + KEY_VALUES[7] + " REAL," +  KEY_VALUES[8] + " REAL"
-            + ")";
 
 
 
@@ -100,11 +73,7 @@ public class DatabaseHelper {
     public void createDatabase(long t) {
         this.opened = true;
         db_ = SQLiteDatabase.openOrCreateDatabase(Constants.kDBFolder + String.valueOf(t).concat(".db"), null, null);
-        db_.execSQL(CREATE_TABLE_ACCELEROMETER);
-        db_.execSQL(CREATE_TABLE_GYROSCOPE);
-        db_.execSQL(CREATE_TABLE_MAGNETOMETER);
-        db_.execSQL(CREATE_TABLE_GPS);
-        db_.execSQL(CREATE_TABLE_ROTATION_MATRIX);
+        db_.execSQL(CREATE_TABLE_TRACE);
     }
 
 
@@ -142,40 +111,13 @@ public class DatabaseHelper {
         meta_.insert(TABLE_META, null, values);
     }
 
-    public static ContentValues objectToContentValues(Object o) throws IllegalAccessException {
-        ContentValues cv = new ContentValues();
-
-        for (Field field : o.getClass().getFields()) {
-            Object value = field.get(o);
-            //check if compatible with contentvalues
-            if (value instanceof Double || value instanceof Integer || value instanceof String || value instanceof Boolean
-                    || value instanceof Long || value instanceof Float || value instanceof Short) {
-                cv.put(field.getName(), value.toString());
-            }
-        }
-        return cv;
-    }
-
     public void insertSensorData(Trace trace) {
-        ContentValues values = null;
-        try {
-            values = objectToContentValues(trace);
-        } catch (IllegalAccessException e) {
-            return;
-        }
-        if (trace instanceof Trace.Rotation) {
-            db_.insert(TABLE_ROTATION_MATRIX, null, values);
-        } else if (trace instanceof Trace.Accel) {
-            db_.insert(TABLE_ACCELEROMETER, null, values);
-        } else if (trace instanceof Trace.Gyro) {
-            db_.insert(TABLE_GYROSCOPE, null, values);
-        } else if (trace instanceof Trace.Trip) {
-            db_.insert(TABLE_MAGNETOMETER, null, values);
-        } else if (trace instanceof Trace.Trip) {
-            db_.insert(TABLE_GPS, null, values);
-        } else {
-            assert 0 == 1;
-        }
+        ContentValues values = new ContentValues();
+        TraceMessage tm = new TraceMessage(trace);
+        values.put("synced", false);
+        values.put("value", GsonSingleton.toJson(tm));
+        values.put("type", tm.type);
+        db_.insert(TABLE_TRACE, null, values);
     }
 
 
@@ -188,20 +130,17 @@ public class DatabaseHelper {
     public List<Trace.Trip> getGPSPoints(long time) {
         SQLiteDatabase tmpdb = SQLiteDatabase.openDatabase(Constants.kDBFolder + String.valueOf(time).concat(".db"), null, SQLiteDatabase.OPEN_READONLY);
         List<Trace.Trip> res = new ArrayList<Trace.Trip>();
-        String selectQuery = "SELECT  * FROM " + TABLE_GPS;
+        String selectQuery = "SELECT  * FROM " + TABLE_TRACE + "WHERE value = " + Trace.Trip.class.getSimpleName();
         Cursor cursor = tmpdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         do {
             if(cursor.getCount() == 0) {
                 break;
             }
-            Trace.Trip trace = new Trace.Trip();
-            trace.time = cursor.getLong(0);
-            for(int i = 0; i < 5; ++i) {
-             //   trace.values[i] = cursor.getFloat(i + 1);
-            }
-            //trace.type = Trace.GPS;
-            res.add(trace);
+            String value = cursor.getString(cursor.getColumnIndex("value"));
+            TraceMessage tm = GsonSingleton.fromJson(value, TraceMessage.class);
+            if(tm.value instanceof Trace.Trip)
+                res.add((Trace.Trip) tm.value);
         } while (cursor.moveToNext());
         tmpdb.close();
         return res;
@@ -333,7 +272,7 @@ public class DatabaseHelper {
 
 
     public void tripRemoveSensorData(long time) {
-        String [] tables = {TABLE_ACCELEROMETER, TABLE_GYROSCOPE, TABLE_MAGNETOMETER, TABLE_ROTATION_MATRIX};
+        String [] tables = {TABLE_TRACE};
         SQLiteDatabase tmpdb = SQLiteDatabase.openOrCreateDatabase(Constants.kDBFolder + String.valueOf(time).concat(".db"), null, null);
         for(int i = 0; i < tables.length; ++i) {
             String dropsql = "DROP TABLE IF EXISTS " + tables[i] + ";";
