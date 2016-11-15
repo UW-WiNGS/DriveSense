@@ -75,7 +75,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         Log.d(TAG, gson.toJson(trip_));
         if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
             dbHelper_ = new DatabaseHelper();
-            points_ = dbHelper_.getGPSPoints(trip_.getStartTime());
+            points_ = dbHelper_.getGPSPoints(trip_.uuid.toString());
             trip_.setGPSPoints(points_);
             //crash when there is no gps
             Log.d(TAG, String.valueOf(points_.size()));
@@ -198,14 +198,14 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         }
         //TODO: change it to display according to speed
         // remove zero points
-        ListIterator<Trace.Trip> it = points_.listIterator();
-        while (it.hasNext()) {
-            Trace.Trip cur = it.next();
-            if(cur.speed == 0.0) {
-                it.remove();
-            }
-        }
-        //
+        //ListIterator<Trace.Trip> it = points_.listIterator();
+        //while (it.hasNext()) {
+        //    Trace.Trip cur = it.next();
+        //    if(cur.speed == 0.0) {
+        //        it.remove();
+        //    }
+        //}
+
         int sz = points_.size();
         Log.d(TAG, "gps size after remove zeros" + sz);
 

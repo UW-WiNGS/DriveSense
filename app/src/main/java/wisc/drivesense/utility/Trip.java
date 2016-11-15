@@ -5,12 +5,15 @@ import com.google.android.gms.maps.model.LatLng;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by lkang on 3/29/16.
  */
 public class Trip implements Serializable {
 
+    public int id;
+    public UUID uuid = UUID.randomUUID();
     private long startTime_ = 0;
     private long endTime_ = 0;
     private double distance_ = 0; // in meter
@@ -26,13 +29,21 @@ public class Trip implements Serializable {
 
     private String TAG = "Trip";
 
-    //private DatabaseHelper dbHelper_ = null;
+    public Trip(int id, UUID uuid, long startTime, long endTime) {
+        this.id = id;
+        this.uuid = uuid;
+        this.startTime_ = startTime;
+        this.endTime_ = endTime;
+    }
 
-    public Trip (long time) {
+    public Trip () {
+        this(System.currentTimeMillis());
+    }
+
+    private Trip(long time) {
         gps_ = new ArrayList<Trace.Trip>();
         this.startTime_ = time;
         this.endTime_ = time;
-        //rating = new Rating(this);
     }
 
     public void setScore(double score) {this.score_ = score;}
@@ -60,10 +71,6 @@ public class Trip implements Serializable {
 
     public LatLng getStartPoint() {return start_;}
     public LatLng getEndPoint() {return dest_;}
-
-
-
-    public double getSpeed() {return speed_ * Constants.kMeterPSToMilePH;}
 
 
     /**
@@ -111,14 +118,14 @@ public class Trip implements Serializable {
     public static double distance(Trace.GPS gps0, Trace.GPS gps1) {
 
         double lat1 = Math.toRadians(gps0.lat);
-        double lng1 = Math.toRadians(gps0.lon);
         double lat2 = Math.toRadians(gps1.lat);
-        double lng2 = Math.toRadians(gps1.lon);
+        double dLat = Math.toRadians(gps1.lat - gps0.lat);
+        double dLon = Math.toRadians(gps1.lon - gps0.lon);
 
-        double p1 = Math.cos(lat1)*Math.cos(lat2)*Math.cos(lng1-lng2);
-        double p2 = Math.sin(lat1)*Math.sin(lat2);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double res = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        double res = Math.acos(p1 + p2);
         if(res< Constants.kSmallEPSILON || res!=res) {
             res = 0.0;
         }

@@ -15,9 +15,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
 import wisc.drivesense.R;
-import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.SignupPayload;
-import wisc.drivesense.uploader.GsonRequest;
+import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 

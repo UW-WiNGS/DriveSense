@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.LoginPayload;
-import wisc.drivesense.uploader.GsonRequest;
+import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 

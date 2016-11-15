@@ -1,7 +1,8 @@
-package wisc.drivesense.uploader;
+package wisc.drivesense.httpPayloads;
 
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -13,6 +14,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 import wisc.drivesense.utility.GsonSingleton;
 
@@ -25,6 +28,12 @@ public class GsonRequest<T> extends Request<T> {
     final String TAG = "GsonRequest";
     private final Response.Listener<T> listener;
     private final Class<T> responseClass;
+    private String jwtToken = null;
+
+    public GsonRequest(int method, String url, Object body, Class<T> responseClass, Response.Listener<T> listener, Response.ErrorListener errorListener, String jwtToken) {
+        this(method, url, body, responseClass, listener, errorListener);
+        this.jwtToken = jwtToken;
+    }
 
     public GsonRequest(int method, String url, Object body, Class<T> responseClass, Response.Listener<T> listener, Response.ErrorListener errorListener) {
         super(method, url, errorListener);
@@ -37,6 +46,15 @@ public class GsonRequest<T> extends Request<T> {
     public String getBodyContentType()
     {
         return "application/json";
+    }
+
+    @Override
+    public Map<String, String> getHeaders() throws AuthFailureError {
+
+        HashMap<String, String> headers = new HashMap<>(super.getHeaders());
+        if(this.jwtToken != null)
+            headers.put("Authorization", "JWT ".concat(jwtToken));
+        return headers;
     }
 
     @Override

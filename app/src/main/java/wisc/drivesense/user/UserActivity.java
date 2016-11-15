@@ -26,7 +26,7 @@ import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
-import wisc.drivesense.uploader.GsonRequest;
+import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 
@@ -66,13 +66,8 @@ public class UserActivity extends AppCompatActivity {
     public void handleDrivesenseLogin(String driveSenseJWT) {
         DriveSenseToken dsToken = DriveSenseToken.InstantiateFromJWT(driveSenseJWT);
         DatabaseHelper dbH = new DatabaseHelper();
-        if(dbH.hasUser(dsToken.email)) {
-            dbH.userLogin(dsToken.email);
-        } else {
-            dbH.newUser(dsToken.email, dsToken.firstname, dsToken.lastname);
-        }
+        dbH.userLogin(dsToken);
         dbH.closeDatabase();
-
         this.reland();
     }
 

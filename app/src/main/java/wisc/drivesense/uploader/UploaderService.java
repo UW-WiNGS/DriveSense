@@ -3,7 +3,6 @@ package wisc.drivesense.uploader;
 import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
@@ -21,9 +20,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
-import wisc.drivesense.user.UserObject;
 
 /**
  * Created by lkang on 3/30/16.
@@ -76,18 +75,18 @@ public class UploaderService extends Service {
      * @param msg
      */
     private void nextTask(String msg) {
-        UserObject user = dbHelper_.getCurrentUser();
+        DriveSenseToken user = dbHelper_.getCurrentUser();
         if(user == null) {
             //no one is signed in
             stopService();
             return;
         }
 
-        if(true == selectAndUploadOneFile(user.email_)){
+        if(true == selectAndUploadOneFile(user.email)){
             return;
         }
 
-        if(true == synchronizeDeletion(user.email_)) {
+        if(true == synchronizeDeletion(user.email)) {
             return;
         }
 
@@ -178,7 +177,8 @@ public class UploaderService extends Service {
             if(type.equals(Constants.kUploadTripDBFile)) {
                 String dbname = params[1];
                 Log.d(TAG, "uploading DB file:" + dbname);
-                res = uploadTrip(dbname);
+                //TODO: Replace with new trip uploading
+                //res = uploadTrip(dbname);
                 if(res == null) {
                     Log.d(TAG, "upload error, res is null");
                     return null;
@@ -219,92 +219,30 @@ public class UploaderService extends Service {
         }
 
         private String synchronizeDeletion(String tripnames) {
-            UserObject user = dbHelper_.getCurrentUser();
+            DriveSenseToken user = dbHelper_.getCurrentUser();
             if(user == null) {
                 return null;
             }
-            String useremail = user.email_;
+            String useremail = user.email;
             String androidid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
             String res = null;
             try {
-                HttpClient client = new HttpClient(Constants.kSyncDeleteURL);
-                client.connectForMultipart();
-                client.addFormPart("deviceid", androidid);
-                client.addFormPart("email", useremail);
-                client.addFormPart("model", Build.MANUFACTURER + "," + Build.MODEL);
-                client.addFormPart("tripnames", tripnames);
-                client.finishMultipart();
-                res = client.getResponse();
+                //TODO: Rewrite
+                //HttpClient client = new HttpClient(Constants.kSyncDeleteURL);
+                //client.connectForMultipart();
+                //client.addFormPart("deviceid", androidid);
+                //client.addFormPart("email", useremail);
+                //client.addFormPart("model", Build.MANUFACTURER + "," + Build.MODEL);
+                //client.addFormPart("tripnames", tripnames);
+                //client.finishMultipart();
+                //res = client.getResponse();
             } catch(Throwable t) {
                 t.printStackTrace();
                 return null;
             }
             return res;
         }
-
-        private String uploadTrip(String dbname) {
-            UserObject user = dbHelper_.getCurrentUser();
-            if (user == null) {
-                return null;
-            }
-            String useremail = user.email_;
-            String androidid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-
-            byte[] byteArray = null;
-            try {
-                File dbfile = new File(Constants.kDBFolder + dbname + ".db");
-                long fsz = dbfile.length();
-                Log.d(TAG, "cur file size:" + fsz);
-                InputStream inputStream = new FileInputStream(dbfile);
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                byte[] b = new byte[(int) fsz];
-                int bytesRead = 0;
-                while ((bytesRead = inputStream.read(b)) != -1) {
-                    bos.write(b, 0, bytesRead);
-                }
-                byteArray = bos.toByteArray();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-
-            String res = null;
-            try {
-                long time = Long.parseLong(dbname);
-                Trip trip = dbHelper_.getTrip(time);
-                HttpClient client = new HttpClient(Constants.kUploadURL);
-                if (trip != null) {
-                    client.connectForMultipart();
-                    client.addFormPart("deviceid", androidid);
-                    client.addFormPart("email", useremail);
-                    client.addFormPart("model", Build.MANUFACTURER + "," + Build.MODEL);
-                    client.addFormPart("starttime", String.valueOf(trip.getStartTime()));
-                    client.addFormPart("endtime", String.valueOf(trip.getEndTime()));
-                    client.addFormPart("score", String.valueOf(trip.getScore()));
-                    client.addFormPart("distance", String.valueOf(trip.getDistance()));
-                    client.addFormPart("tripstatus", String.valueOf(trip.getStatus()));
-
-                    //TODO: failed if too big
-                    client.addFilePart("uploads", dbname + ".db", byteArray);
-                    client.finishMultipart();
-
-                } else {
-                    Log.e(TAG, "database get trip is null");
-                    return null;
-                }
-                res = client.getResponse();
-            } catch (OutOfMemoryError e) {
-                Log.e(TAG, "out of memeory");
-                e.printStackTrace();
-                dbHelper_.tripRemoveSensorData(Long.valueOf(dbname));
-            } catch(Throwable t) {
-                t.printStackTrace();
-                return null;
-            }
-            return res;
-        }
-
     }
 
 

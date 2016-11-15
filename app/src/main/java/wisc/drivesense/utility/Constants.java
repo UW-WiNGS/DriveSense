@@ -30,6 +30,8 @@ public class Constants {
 
 
     private static final String kDomain = "http://drivesensetest.wirover.com:8000";
+
+    public static final String kTripURL = kDomain + "/updateTrip";
     public static final String kUploadURL = kDomain + "/upload";
     public static final String kSyncDeleteURL = kDomain + "/androidsync";
 

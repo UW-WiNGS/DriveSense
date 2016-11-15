@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
                 if (trace instanceof Trace.GPS) {
                     Log.d(TAG, "Got message: " + message);
                     sendToRealTimeMapFragment(trace);
-                    tvSpeed.setText(String.format("%.1f", curtrip_.getSpeed()));
+                    tvSpeed.setText(String.format("%.1f", ((Trace.GPS) trace).speed * Constants.kMeterPSToMilePH));
                     tvMile.setText(String.format("%.2f", curtrip_.getDistance() * Constants.kMeterToMile));
                     /*
                     if(curtrip_.getSpeed() >= 5.0 && trace.values[2] < 0) {
