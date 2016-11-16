@@ -25,7 +25,7 @@ public class TraceTest {
     public void serializeGPS() {
         Trace.GPS p = new Trace.GPS();
         p.lat = 40;
-        p.lon = 36;
+        p.lng = 36;
         TraceMessage m = new TraceMessage(p);
         String output = GsonSingleton.toJson(m);
         assertTrue(m.equals(GsonSingleton.fromJson(output, TraceMessage.class)));

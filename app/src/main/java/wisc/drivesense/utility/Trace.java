@@ -1,20 +1,11 @@
 package wisc.drivesense.utility;
 
 
-import android.content.ContentValues;
-import android.support.v4.content.res.TypedArrayUtils;
-import android.util.JsonReader;
-import android.util.JsonWriter;
-import android.util.Log;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
-import com.google.gson.reflect.TypeToken;
 
 import java.io.Serializable;
-import java.io.StringReader;
-import java.io.StringWriter;
 
 public abstract class Trace implements Serializable {
 
@@ -43,10 +34,10 @@ public abstract class Trace implements Serializable {
     }
     public static  class GPS extends Trace {
         public float lat;
-        public float lon;
+        public float lng;
         public float speed;
         public float alt;
-        public LatLng toLatLng() { return new LatLng(lat, lon); }
+        public LatLng toLatLng() { return new LatLng(lat, lng); }
     }
     public static  class Rotation extends Trace implements IVector{
         float[] matrix = new float[9];

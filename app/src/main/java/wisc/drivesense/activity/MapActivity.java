@@ -31,7 +31,6 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
@@ -238,7 +237,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
                 }
             }
 
-            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(point.lat, point.lon)).icon(bitmapDescriptor);
+            MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(point.lat, point.lng)).icon(bitmapDescriptor);
             Marker marker = map_.addMarker(markerOptions);
             builder.include(marker.getPosition());
         }

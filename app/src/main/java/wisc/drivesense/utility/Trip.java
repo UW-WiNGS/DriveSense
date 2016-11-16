@@ -84,9 +84,9 @@ public class Trip implements Serializable {
         if(trace instanceof Trace.Trip)
             gps_.add((Trace.Trip)trace);
         if(start_ == null) {
-            start_ = new LatLng(trace.lat, trace.lon);
+            start_ = new LatLng(trace.lat, trace.lng);
         }
-        dest_ = new LatLng(trace.lat, trace.lon);
+        dest_ = new LatLng(trace.lat, trace.lng);
         speed_ = trace.speed;
         this.endTime_ = trace.time;
 
@@ -105,8 +105,8 @@ public class Trip implements Serializable {
             return;
         }
         this.gps_ = gps;
-        this.start_ = new LatLng(gps.get(0).lat, gps.get(0).lon);
-        this.dest_ = new LatLng(gps.get(sz - 1).lat, gps.get(sz - 1).lon);
+        this.start_ = new LatLng(gps.get(0).lat, gps.get(0).lng);
+        this.dest_ = new LatLng(gps.get(sz - 1).lat, gps.get(sz - 1).lng);
     }
 
     public List<Trace.Trip> getGPSPoints() {
@@ -120,7 +120,7 @@ public class Trip implements Serializable {
         double lat1 = Math.toRadians(gps0.lat);
         double lat2 = Math.toRadians(gps1.lat);
         double dLat = Math.toRadians(gps1.lat - gps0.lat);
-        double dLon = Math.toRadians(gps1.lon - gps0.lon);
+        double dLon = Math.toRadians(gps1.lng - gps0.lng);
 
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
