@@ -87,7 +87,7 @@ public class UserActivity extends AppCompatActivity {
                             tokenLogin, LoginPayload.class) {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Toast.makeText(getApplicationContext(), "Facebook token authentication with Drivesense Failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), R.string.third_party_login_failed, Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
@@ -133,7 +133,7 @@ public class UserActivity extends AppCompatActivity {
     }
 
     public void handleGoogleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "Google sign in result:" + result.isSuccess() + result.toString());
+        Log.d(TAG, "Google sign in result: " + result.isSuccess());
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
@@ -145,7 +145,7 @@ public class UserActivity extends AppCompatActivity {
                     tokenLogin, LoginPayload.class) {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(ctx, R.string.login_failed, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, R.string.third_party_login_failed, Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -158,7 +158,7 @@ public class UserActivity extends AppCompatActivity {
             RequestQueueSingleton.getInstance(this).getRequestQueue().add(loginReq);
         } else {
             // Signed out, show unauthenticated UI.
-
+            Toast.makeText(this, R.string.google_login_fail, Toast.LENGTH_LONG).show();
         }
     }
 }
