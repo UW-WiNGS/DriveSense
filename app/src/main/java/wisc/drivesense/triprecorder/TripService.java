@@ -165,12 +165,17 @@ public class TripService extends Service {
                 unsentMessages = new ArrayList<>();
 
                 GsonRequest<TripPayload> tripReq = new GsonRequest<TripPayload>(Request.Method.POST, Constants.kTripURL,
-                        payload, TripPayload.class,
-                        new Response.Listener<TripPayload>() {
-                            @Override
-                            public void onResponse(TripPayload response) {
-                            }
-                        }, null, user.jwt);
+                                payload, TripPayload.class, user.jwt) {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+
+                    @Override
+                    public void onResponse(TripPayload response) {
+
+                    }
+                };
                 // Add the request to the RequestQueue.
                 RequestQueueSingleton.getInstance(context).getRequestQueue().add(tripReq);
             }

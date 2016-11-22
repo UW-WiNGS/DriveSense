@@ -84,20 +84,19 @@ public class UserActivity extends AppCompatActivity {
                     TokenLoginPayload tokenLogin = new TokenLoginPayload();
                     tokenLogin.access_token = fbtoken;
                     GsonRequest<LoginPayload> loginReq = new GsonRequest<LoginPayload>(Request.Method.POST, Constants.kFacebookSignInURL,
-                            tokenLogin, LoginPayload.class,
-                            new Response.Listener<LoginPayload>() {
-                                @Override
-                                public void onResponse(LoginPayload response) {
-                                    // Display the first 500 characters of the response string.
-                                    Log.d(TAG,"Got drivesense token: "+response.token);
-                                    handleDrivesenseLogin(response.token);
-                                }
-                            }, new Response.ErrorListener() {
+                            tokenLogin, LoginPayload.class) {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Toast.makeText(getApplicationContext(), "Facebook token authentication with Drivesense Failed", Toast.LENGTH_SHORT).show();
                         }
-                    });
+
+                        @Override
+                        public void onResponse(LoginPayload response) {
+                            // Display the first 500 characters of the response string.
+                            Log.d(TAG,"Got drivesense token: "+response.token);
+                            handleDrivesenseLogin(response.token);
+                        }
+                    };
                     RequestQueueSingleton.getInstance(getApplicationContext()).getRequestQueue().add(loginReq);
                 }
 
@@ -143,19 +142,18 @@ public class UserActivity extends AppCompatActivity {
             TokenLoginPayload tokenLogin = new TokenLoginPayload();
             tokenLogin.id_token = acct.getIdToken();
             GsonRequest<LoginPayload> loginReq = new GsonRequest<LoginPayload>(Request.Method.POST, Constants.kGoogleSignInURL,
-                    tokenLogin, LoginPayload.class,
-                    new Response.Listener<LoginPayload>() {
-                        @Override
-                        public void onResponse(LoginPayload response) {
-                            Log.d(TAG,"Got drivesense token: "+response.token);
-                            handleDrivesenseLogin(response.token);
-                        }
-                    }, new Response.ErrorListener() {
+                    tokenLogin, LoginPayload.class) {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Toast.makeText(ctx, R.string.login_failed, Toast.LENGTH_SHORT).show();
                 }
-            });
+
+                @Override
+                public void onResponse(LoginPayload response) {
+                    Log.d(TAG,"Got drivesense token: "+response.token);
+                    handleDrivesenseLogin(response.token);
+                }
+            };
             // Add the request to the RequestQueue.
             RequestQueueSingleton.getInstance(this).getRequestQueue().add(loginReq);
         } else {

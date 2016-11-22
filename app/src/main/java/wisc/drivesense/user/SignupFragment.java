@@ -94,20 +94,19 @@ public class SignupFragment extends Fragment {
         signup.lastname = lastname;
 
         GsonRequest<SignupPayload> loginReq = new GsonRequest<SignupPayload>(Request.Method.POST, Constants.kSignUpURL,
-                signup, SignupPayload.class,
-                new Response.Listener<SignupPayload>() {
-                    @Override
-                    public void onResponse(SignupPayload response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d(TAG,"Got a login token: " + response.token);
-                        ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
-                    }
-                }, new Response.ErrorListener() {
+                signup, SignupPayload.class) {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(self.getContext(), R.string.sign_up_error, Toast.LENGTH_SHORT).show();
             }
-        });
+
+            @Override
+            public void onResponse(SignupPayload response) {
+                // Display the first 500 characters of the response string.
+                Log.d(TAG,"Got a login token: " + response.token);
+                ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
+            }
+        };
         // Add the request to the RequestQueue.
         RequestQueueSingleton.getInstance(this.getContext()).getRequestQueue().add(loginReq);
     }

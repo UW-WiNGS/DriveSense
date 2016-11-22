@@ -23,7 +23,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         if(isConnected) {
             Log.d(TAG, "Internet is Connected!");
-            if(MainActivity.isServiceRunning(context, UploaderService.class) == false) {
+            if(!MainActivity.isServiceRunning(context, UploaderService.class)) {
                 Log.d(TAG, "Start upload service!!!");
                 mUploaderIntent = new Intent(context, UploaderService.class);
                 context.startService(mUploaderIntent);
@@ -31,7 +31,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         } else {
             Log.d(TAG, "Internet is Closed!");
             //end uploading
-            if(MainActivity.isServiceRunning(context, UploaderService.class) == true) {
+            if(MainActivity.isServiceRunning(context, UploaderService.class)) {
                 Log.d(TAG, "Stop upload service!!!");
                 context.stopService(mUploaderIntent);
                 mUploaderIntent = null;

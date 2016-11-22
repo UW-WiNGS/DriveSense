@@ -23,22 +23,20 @@ import wisc.drivesense.utility.GsonSingleton;
  * Created by peter on 10/27/16.
  */
 
-public class GsonRequest<T> extends Request<T> {
+public abstract class GsonRequest<T> extends Request<T> implements Response.Listener<T>, Response.ErrorListener {
     Object mBody;
     final String TAG = "GsonRequest";
-    private final Response.Listener<T> listener;
     private final Class<T> responseClass;
     private String jwtToken = null;
 
-    public GsonRequest(int method, String url, Object body, Class<T> responseClass, Response.Listener<T> listener, Response.ErrorListener errorListener, String jwtToken) {
-        this(method, url, body, responseClass, listener, errorListener);
+    public GsonRequest(int method, String url, Object body, Class<T> responseClass, String jwtToken) {
+        this(method, url, body, responseClass);
         this.jwtToken = jwtToken;
     }
 
-    public GsonRequest(int method, String url, Object body, Class<T> responseClass, Response.Listener<T> listener, Response.ErrorListener errorListener) {
-        super(method, url, errorListener);
+    public GsonRequest(int method, String url, Object body, Class<T> responseClass) {
+        super(method, url, null);
         mBody = body;
-        this.listener = listener;
         this.responseClass = responseClass;
         this.setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
     }
@@ -67,13 +65,14 @@ public class GsonRequest<T> extends Request<T> {
     @Override
     protected void deliverResponse(T response) {
         Log.d(TAG, response.toString());
-        this.listener.onResponse(response);
+        this.onResponse(response);
     }
 
     @Override
     public void deliverError(VolleyError error) {
         Log.d(TAG, error.toString());
         super.deliverError(error);
+        this.onErrorResponse(error);
     }
 
     @Override

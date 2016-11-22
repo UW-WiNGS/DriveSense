@@ -140,22 +140,20 @@ public class AuthLandingFragment extends Fragment {
         login.email = email;
         login.password = password;
 
-
         GsonRequest<LoginPayload> loginReq = new GsonRequest<LoginPayload>(Request.Method.POST, Constants.kSignInURL,
-                login, LoginPayload.class,
-                new Response.Listener<LoginPayload>() {
-                    @Override
-                    public void onResponse(LoginPayload response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d(TAG,response.token);
-                        ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
-                    }
-                }, new Response.ErrorListener() {
+                login, LoginPayload.class) {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(self.getContext(), R.string.login_failed, Toast.LENGTH_SHORT).show();
             }
-        });
+
+            @Override
+            public void onResponse(LoginPayload response) {
+                // Display the first 500 characters of the response string.
+                Log.d(TAG,response.token);
+                ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
+            }
+        };
         // Add the request to the RequestQueue.
         RequestQueueSingleton.getInstance(this.getContext()).getRequestQueue().add(loginReq);
     }
