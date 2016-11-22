@@ -10,13 +10,13 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.GsonSingleton;
 
 /**
@@ -24,19 +24,19 @@ import wisc.drivesense.utility.GsonSingleton;
  */
 
 public abstract class GsonRequest<T> extends Request<T> implements Response.Listener<T>, Response.ErrorListener {
-    Object mBody;
+    protected Object payload;
     final String TAG = "GsonRequest";
     private final Class<T> responseClass;
-    private String jwtToken = null;
+    private DriveSenseToken dsToken = null;
 
-    public GsonRequest(int method, String url, Object body, Class<T> responseClass, String jwtToken) {
+    public GsonRequest(int method, String url, Object body, Class<T> responseClass, DriveSenseToken dsToken) {
         this(method, url, body, responseClass);
-        this.jwtToken = jwtToken;
+        this.dsToken = dsToken;
     }
 
     public GsonRequest(int method, String url, Object body, Class<T> responseClass) {
         super(method, url, null);
-        mBody = body;
+        payload = body;
         this.responseClass = responseClass;
         this.setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
     }
@@ -50,14 +50,14 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
     public Map<String, String> getHeaders() throws AuthFailureError {
 
         HashMap<String, String> headers = new HashMap<>(super.getHeaders());
-        if(this.jwtToken != null)
-            headers.put("Authorization", "JWT ".concat(jwtToken));
+        if(this.dsToken != null)
+            headers.put("Authorization", "JWT ".concat(dsToken.jwt));
         return headers;
     }
 
     @Override
     public byte[] getBody() {
-        String json = GsonSingleton.toJson(mBody);
+        String json = GsonSingleton.toJson(payload);
 
         return json.getBytes();
     }

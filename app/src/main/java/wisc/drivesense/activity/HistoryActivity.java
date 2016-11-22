@@ -77,7 +77,7 @@ public class HistoryActivity extends Activity {
                     public void onClick(DialogInterface dialog, int pos) {
                         Log.d(TAG, "delete:" + position);
                         Trip trip = adapter_.getItem(position);
-                        dbHelper_.removeTrip(trip.getStartTime());
+                        dbHelper_.deleteTrip(trip.uuid.toString());
                         adapter_.remove(trip);
                     }
                 });

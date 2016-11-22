@@ -12,22 +12,18 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.GsonRequest;
-import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.RequestQueueSingleton;
+import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Rating;
@@ -85,14 +81,15 @@ public class TripService extends Service {
         //validate the trip based on distance and travel time
         if(curtrip_.getDistance() >= Constants.kTripMinimumDistance && curtrip_.getDuration() >= Constants.kTripMinimumDuration) {
             Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_SHORT).show();
-
+            dbHelper_.finalizeTrip(curtrip_.uuid.toString());
+            TripUploadRequest.Start(this);
         } else {
             Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_SHORT).show();
-            dbHelper_.deleteTrip(curtrip_.getStartTime());
+            dbHelper_.deleteTrip(curtrip_.uuid.toString());
         }
-        dbHelper_.closeDatabase();
 
         stopSelf();
+        dbHelper_.closeDatabase();
     }
 
 
@@ -155,9 +152,18 @@ public class TripService extends Service {
                 curtrip_.setTilt(((Trace.Trip) trace).tilt);
                 curtrip_.setScore(((Trace.Trip) trace).score);
             }
-            unsentMessages.add(message);
-            TripPayload payload = new TripPayload();
-            if(System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+
+            if(!stoprecording) {
+                try {
+                    message.rowid = dbHelper_.insertSensorData(curtrip_.uuid.toString(), trace);
+                    unsentMessages.add(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+                TripPayload payload = new TripPayload();
                 payload.guid = curtrip_.uuid.toString();
                 payload.traces = unsentMessages;
                 payload.distance = curtrip_.getDistance();
@@ -165,15 +171,15 @@ public class TripService extends Service {
                 unsentMessages = new ArrayList<>();
 
                 GsonRequest<TripPayload> tripReq = new GsonRequest<TripPayload>(Request.Method.POST, Constants.kTripURL,
-                                payload, TripPayload.class, user.jwt) {
+                                payload, TripPayload.class, user) {
                     @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
+                    public void onErrorResponse(VolleyError error) { }
 
                     @Override
                     public void onResponse(TripPayload response) {
-
+                        for (TraceMessage trace : ((TripPayload)payload).traces) {
+                            DatabaseHelper.single().markTraceSynced(trace.rowid);
+                        }
                     }
                 };
                 // Add the request to the RequestQueue.
@@ -185,9 +191,6 @@ public class TripService extends Service {
                 stoprecording = true;
             } else {
                 stoprecording = false;
-            }
-            if(dbHelper_.isOpen() && stoprecording == false) {
-                dbHelper_.insertSensorData(curtrip_.uuid.toString(), trace);
             }
         }
 
