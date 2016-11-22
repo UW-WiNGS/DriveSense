@@ -29,7 +29,6 @@ public class Rating implements Serializable {
         //create a new trace for GPS, since we use GPS to capture driving behaviors
         Trace.Trip ntrace = trace.copyTrace(Trace.Trip.class);
         ntrace.time = trace.time;
-        ntrace.speed = (float)lastSpeed_;
         ntrace.score = (float)score_;
         ntrace.brake = (float)brake;
         ntrace.tilt = (float)tiltCalc.getTilt();

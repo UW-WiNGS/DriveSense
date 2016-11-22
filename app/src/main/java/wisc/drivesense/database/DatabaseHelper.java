@@ -43,7 +43,7 @@ public class DatabaseHelper {
 
     private static final String CREATE_TABLE_TRIP = "CREATE TABLE IF NOT EXISTS "
             + TABLE_TRIP + "(id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, starttime INTEGER, endtime INTEGER,"
-            + " distance REAL, score REAL, deleted INTEGER, uploaded INTEGER, email TEXT);";
+            + " distance REAL, score REAL, status INTEGER, synced INTEGER, email TEXT);";
 
     private static final String CREATE_TABLE_TRACE= "CREATE TABLE IF NOT EXISTS "
             + TABLE_TRACE + "(tripid INTEGER, type TEXT, value TEXT, synced INTEGER,"
@@ -85,8 +85,8 @@ public class DatabaseHelper {
         values.put("endtime", trip.getEndTime());
         values.put("distance", trip.getDistance());
         values.put("score", trip.getScore());
-        values.put("deleted", 0);
-        values.put("uploaded", 0);
+        values.put("status", 1);
+        values.put("synced", 0);
         //assign to current user
         DriveSenseToken user = this.getCurrentUser();
         if(user != null) {
