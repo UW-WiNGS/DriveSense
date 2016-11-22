@@ -11,4 +11,6 @@ import wisc.drivesense.utility.TraceMessage;
 public class TripPayload {
     public String guid;
     public List<TraceMessage> traces;
+    public Double distance;
+    public Integer tripStatus;
 }

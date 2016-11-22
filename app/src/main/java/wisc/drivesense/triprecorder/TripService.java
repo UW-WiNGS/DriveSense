@@ -160,6 +160,7 @@ public class TripService extends Service {
             if(System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
                 payload.guid = curtrip_.uuid.toString();
                 payload.traces = unsentMessages;
+                payload.distance = curtrip_.getDistance();
                 lastSent = System.currentTimeMillis();
                 unsentMessages = new ArrayList<>();
 
