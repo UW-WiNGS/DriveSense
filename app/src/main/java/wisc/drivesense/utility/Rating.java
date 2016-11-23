@@ -24,18 +24,18 @@ public class Rating implements Serializable {
     }
 
     public Trace.Trip getRating(Trace.GPS trace) {
-        int brake = this.calculateBraking(trace);
+        float brake = this.calculateBraking(trace);
         tiltCalc.processTrace(trace);
         //create a new trace for GPS, since we use GPS to capture driving behaviors
         Trace.Trip ntrace = trace.copyTrace(Trace.Trip.class);
         ntrace.time = trace.time;
         ntrace.score = (float)score_;
-        ntrace.brake = (float)brake;
+        ntrace.brake = brake;
         ntrace.tilt = (float)tiltCalc.getTilt();
         return ntrace;
     }
 
-    private int calculateBraking(Trace.GPS trace) {
+    private float calculateBraking(Trace.GPS trace) {
         if(lastTrace_ == null) {
             lastTrace_ = trace;
             return 0;
@@ -57,7 +57,7 @@ public class Rating implements Serializable {
         if(a < -2.5) {
             double curscore = 3.0 - Math.min(3.0, Math.abs(a));
             score_ = (score_ * (counter_ - 1) + curscore * 10.0)/counter_;
-            return -1;
+            return (float)a;
         } else {
             score_ = (score_ * (counter_ - 1) + 10.0)/counter_;
             return 0;
