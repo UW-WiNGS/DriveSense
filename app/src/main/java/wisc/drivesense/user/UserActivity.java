@@ -7,7 +7,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -22,12 +21,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
 import wisc.drivesense.httpPayloads.GsonRequest;
-import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 
 public class UserActivity extends AppCompatActivity {
@@ -49,8 +48,7 @@ public class UserActivity extends AppCompatActivity {
     }
 
     public void reland() {
-        DatabaseHelper dbH = new DatabaseHelper();
-        if(dbH.getCurrentUser() != null) {
+        if(DriveSenseApp.DBHelper().getCurrentUser() != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.activity_fragment_content, UserProfileFragment.newInstance())
                     .commit();
@@ -59,15 +57,12 @@ public class UserActivity extends AppCompatActivity {
                     .replace(R.id.activity_fragment_content, AuthLandingFragment.newInstance())
                     .commit();
         }
-        dbH.closeDatabase();
 
     }
 
     public void handleDrivesenseLogin(String driveSenseJWT) {
         DriveSenseToken dsToken = DriveSenseToken.InstantiateFromJWT(driveSenseJWT);
-        DatabaseHelper dbH = new DatabaseHelper();
-        dbH.userLogin(dsToken);
-        dbH.closeDatabase();
+        DriveSenseApp.DBHelper().userLogin(dsToken);
         this.reland();
     }
 
@@ -97,7 +92,7 @@ public class UserActivity extends AppCompatActivity {
                             handleDrivesenseLogin(response.token);
                         }
                     };
-                    RequestQueueSingleton.getInstance(getApplicationContext()).getRequestQueue().add(loginReq);
+                    DriveSenseApp.RequestQueue().add(loginReq);
                 }
 
                 @Override
@@ -155,7 +150,7 @@ public class UserActivity extends AppCompatActivity {
                 }
             };
             // Add the request to the RequestQueue.
-            RequestQueueSingleton.getInstance(this).getRequestQueue().add(loginReq);
+            DriveSenseApp.RequestQueue().add(loginReq);
         } else {
             // Signed out, show unauthenticated UI.
 

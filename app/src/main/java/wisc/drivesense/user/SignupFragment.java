@@ -11,13 +11,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.SignupPayload;
 import wisc.drivesense.httpPayloads.GsonRequest;
-import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 
 public class SignupFragment extends Fragment {
@@ -108,7 +107,7 @@ public class SignupFragment extends Fragment {
             }
         };
         // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(this.getContext()).getRequestQueue().add(loginReq);
+        DriveSenseApp.RequestQueue().add(loginReq);
     }
 
 }

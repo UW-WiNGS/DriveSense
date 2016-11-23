@@ -32,6 +32,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.List;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.Constants;
@@ -46,7 +47,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
     private Trip trip_;
     private List<Trace.Trip> points_;
     private static String TAG = "MapActivity";
-    private DatabaseHelper dbHelper_ = null;
 
 
     @Override
@@ -73,8 +73,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         Gson gson = new Gson();
         Log.d(TAG, gson.toJson(trip_));
         if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
-            dbHelper_ = new DatabaseHelper();
-            points_ = dbHelper_.getGPSPoints(trip_.uuid.toString());
+            points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
             trip_.setGPSPoints(points_);
             //crash when there is no gps
             Log.d(TAG, String.valueOf(points_.size()));
@@ -286,13 +285,5 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
                 break;
         }
         */
-    }
-
-
-    protected void onDestroy() {
-        if(dbHelper_ != null && dbHelper_.isOpen()) {
-            dbHelper_.closeDatabase();
-        }
-        super.onDestroy();
     }
 }

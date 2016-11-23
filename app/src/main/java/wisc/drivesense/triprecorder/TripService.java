@@ -18,10 +18,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
-import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
@@ -36,7 +35,6 @@ public class TripService extends Service {
     private long lastSent = 0;
     private final long SEND_INTERVAL = 1000;
     private DriveSenseToken user = null;
-    private DatabaseHelper dbHelper_ = null;
     public Trip curtrip_ = null;
     public Rating rating_ = null;
     public RealTimeTiltCalculation tiltCal_ = null;
@@ -81,15 +79,16 @@ public class TripService extends Service {
         //validate the trip based on distance and travel time
         if(curtrip_.getDistance() >= Constants.kTripMinimumDistance && curtrip_.getDuration() >= Constants.kTripMinimumDuration) {
             Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_SHORT).show();
-            dbHelper_.finalizeTrip(curtrip_.uuid.toString());
+            curtrip_.setStatus(2);
+            curtrip_.setEndTime(System.currentTimeMillis());
+            DriveSenseApp.DBHelper().updateTrip(curtrip_);
             TripUploadRequest.Start(this);
         } else {
             Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_SHORT).show();
-            dbHelper_.deleteTrip(curtrip_.uuid.toString());
+            DriveSenseApp.DBHelper().deleteTrip(curtrip_.uuid.toString());
         }
 
         stopSelf();
-        dbHelper_.closeDatabase();
     }
 
 
@@ -108,11 +107,10 @@ public class TripService extends Service {
         }
 
         Toast.makeText(this, "Start trip in background!", Toast.LENGTH_SHORT).show();
-        dbHelper_ = new DatabaseHelper();
-        user = dbHelper_.getCurrentUser();
+        user = DriveSenseApp.DBHelper().getCurrentUser();
 
         curtrip_ = new Trip();
-        dbHelper_.insertTrip(curtrip_);
+        DriveSenseApp.DBHelper().insertTrip(curtrip_);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
     }
@@ -155,7 +153,7 @@ public class TripService extends Service {
 
             if(!stoprecording) {
                 try {
-                    message.rowid = dbHelper_.insertSensorData(curtrip_.uuid.toString(), trace);
+                    message.rowid = DriveSenseApp.DBHelper().insertSensorData(curtrip_.uuid.toString(), trace);
                     unsentMessages.add(message);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -178,12 +176,12 @@ public class TripService extends Service {
                     @Override
                     public void onResponse(TripPayload response) {
                         for (TraceMessage trace : ((TripPayload)payload).traces) {
-                            DatabaseHelper.single().markTraceSynced(trace.rowid);
+                            DriveSenseApp.DBHelper().markTraceSynced(trace.rowid);
                         }
                     }
                 };
                 // Add the request to the RequestQueue.
-                RequestQueueSingleton.getInstance(context).getRequestQueue().add(tripReq);
+                DriveSenseApp.RequestQueue().add(tripReq);
             }
 
             long curtime = trace.time;

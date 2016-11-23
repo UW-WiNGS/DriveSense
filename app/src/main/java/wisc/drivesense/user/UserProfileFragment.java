@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 
@@ -26,10 +27,8 @@ public class UserProfileFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        DatabaseHelper dbH = new DatabaseHelper();
-        DriveSenseToken user = dbH.getCurrentUser();
+        DriveSenseToken user = DriveSenseApp.DBHelper().getCurrentUser();
         ((TextView)view.findViewById(R.id.username)).setText("Logged in as: " + user.firstname + " " + user.lastname);
-        dbH.closeDatabase();
 
         view.findViewById(R.id.sign_out_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -40,9 +39,7 @@ public class UserProfileFragment extends Fragment {
     }
 
     public void signOutClicked(View view) {
-        DatabaseHelper dbH = new DatabaseHelper();
-        dbH.userLogout();
-        dbH.closeDatabase();
+        DriveSenseApp.DBHelper().userLogout();
         ((UserActivity)this.getActivity()).reland();
     }
 }

@@ -38,7 +38,7 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
         super(method, url, null);
         payload = body;
         this.responseClass = responseClass;
-        this.setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
+        this.setRetryPolicy(new DefaultRetryPolicy(10000, 0, 0));
     }
 
     public String getBodyContentType()
