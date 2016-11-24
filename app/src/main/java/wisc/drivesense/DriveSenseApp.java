@@ -27,18 +27,18 @@ public class DriveSenseApp extends Application {
         DBHelper().finalizeTrips();
 
         // Attempt to upload any unsent trips
-        TripUploadRequest.Start(this);
+        TripUploadRequest.Start();
     }
 
-    public static RequestQueue RequestQueue() {
+    public static synchronized RequestQueue RequestQueue() {
         if (requestQueue == null) {
             requestQueue = Volley.newRequestQueue(context);
         }
         return requestQueue;
     }
-    public static DatabaseHelper DBHelper() {
+    public static synchronized DatabaseHelper DBHelper() {
         if(dbHelper == null)
-            dbHelper = new DatabaseHelper();
+            dbHelper = new DatabaseHelper(context);
         return dbHelper;
     }
 }

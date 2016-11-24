@@ -2,8 +2,10 @@ package wisc.drivesense.database;
 
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -22,15 +24,14 @@ import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
 
-public class DatabaseHelper {
+public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Logcat tag
     private static final String TAG = "DatabaseHelper";
 
-    private SQLiteDatabase db_ = null;
-
     // Database Version
-    private static final String DATABASE_NAME = "summary.db";
+    private static final String DATABASE_NAME = "drivesense.db";
+    private static final int DATABASE_VERSION = 1;
 
     // Table Names
     private static final String TABLE_USER = "user";
@@ -49,33 +50,32 @@ public class DatabaseHelper {
             + TABLE_TRACE + "(id INTEGER PRIMARY KEY AUTOINCREMENT, tripid INTEGER, type TEXT, value TEXT, synced INTEGER,"
             + " FOREIGN KEY(tripid) REFERENCES "+TABLE_TRIP+"(id));";
 
+    private static final String DROP_TABLE = "DROP TABLE ";
 
+    private SQLiteDatabase wdb;
+    private  SQLiteDatabase rdb;
 
-    private boolean opened = false;
-
-    // public interfaces
-    public DatabaseHelper() {
-        this.opened = true;
-        //this.context = cont;
-        //openOrCreateDatabase(DATABASE_NAME, SQLiteDatabase.CREATE_IF_NECESSARY, null);
-        //File dir = this.context.getFilesDir();
-        db_ = SQLiteDatabase.openOrCreateDatabase(Constants.kDBFolder + DATABASE_NAME, null, null);
-        db_.execSQL(CREATE_TABLE_TRIP);
-        db_.execSQL(CREATE_TABLE_USER);
-        db_.execSQL(CREATE_TABLE_TRACE);
-
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, 1);
+        wdb = this.getWritableDatabase();
+        rdb = this.getReadableDatabase();
     }
 
-    public void closeDatabase() {
-        this.opened = false;
-        if(db_ != null && db_.isOpen()) {
-            db_.close();
-        }
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL(CREATE_TABLE_TRIP);
+        db.execSQL(CREATE_TABLE_USER);
+        db.execSQL(CREATE_TABLE_TRACE);
     }
 
-    public boolean isOpen() {
-        return this.opened;
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL(DROP_TABLE+TABLE_TRACE+";");
+        db.execSQL(DROP_TABLE+TABLE_TRIP+";");
+        db.execSQL(DROP_TABLE+TABLE_USER+";");
+        onCreate(db);
     }
+
 
     public void insertTrip(Trip trip) {
         Gson gson = new Gson();
@@ -96,12 +96,12 @@ public class DatabaseHelper {
             //return;
             values.put("email", "");
         }
-        db_.insert(TABLE_TRIP, null, values);
+        wdb.insert(TABLE_TRIP, null, values);
     }
 
     public long insertSensorData(String tripUUID, Trace trace) throws Exception {
         String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
-        Cursor cursor = db_.rawQuery(selectQuery, null);
+        Cursor cursor = wdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         if(cursor.getCount() == 0)
             throw new Exception();
@@ -112,26 +112,28 @@ public class DatabaseHelper {
         values.put("value", GsonSingleton.toJson(tm));
         values.put("type", tm.type);
         values.put("tripid", tripID);
-        long rowid = db_.insert(TABLE_TRACE, null, values);
+        long rowid = wdb.insert(TABLE_TRACE, null, values);
 
         selectQuery = "SELECT id FROM " + TABLE_TRACE + " WHERE rowid = " + rowid + ";";
-        cursor = db_.rawQuery(selectQuery, null);
+        cursor = wdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
-        if(cursor.getCount() == 0)
+        if(cursor.getCount() == 0) {
             throw new Exception();
+        }
         return cursor.getLong(0);
+
     }
 
     public void markTraceSynced(Long traceid) {
         ContentValues values = new ContentValues();
         values.put("synced", 1);
-        db_.update(TABLE_TRACE, values, "rowid=" + traceid.toString(), null);
+        wdb.update(TABLE_TRACE, values, "rowid=" + traceid.toString(), null);
     }
 
     public void markTripSynced(String uuid) {
         ContentValues values = new ContentValues();
         values.put("synced", 1);
-        db_.update(TABLE_TRIP, values, "uuid='" + uuid + "'", null);
+        wdb.update(TABLE_TRIP, values, "uuid='" + uuid + "'", null);
     }
 
     private List<TraceMessage> cursorToTraces(Cursor cursor) {
@@ -152,8 +154,9 @@ public class DatabaseHelper {
     public List<TraceMessage> getUnsentTraces(String uuid) {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"'";
-        Cursor cursor = db_.rawQuery(selectQuery, null);
-        return cursorToTraces(cursor);
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
+        List<TraceMessage> traces = cursorToTraces(cursor);
+        return traces;
     }
     /**
      * @brief get the gps points of a trip, which is identified by the start time (the name of the database)
@@ -163,7 +166,7 @@ public class DatabaseHelper {
     public List<Trace.Trip> getGPSPoints(String uuid) {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE type = '" + Trace.Trip.class.getSimpleName() + "' and trip.uuid = '" + uuid +"'";
-        Cursor cursor = db_.rawQuery(selectQuery, null);
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
         ArrayList<Trace.Trip> res = new ArrayList<>();
         for (TraceMessage tm : cursorToTraces(cursor)) {
             res.add((Trace.Trip)tm.value);
@@ -189,7 +192,7 @@ public class DatabaseHelper {
 
     public Trip getTrip(String uuid) {
         String selectQuery = "SELECT id, uuid, starttime, endtime, distance, score, deleted FROM " + TABLE_TRIP + " WHERE uuid = '" + uuid + "';";
-        Cursor cursor = db_.rawQuery(selectQuery, null);
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         Trip trip = null;
         do {
@@ -202,7 +205,7 @@ public class DatabaseHelper {
     }
 
     public void deleteTrip(String uuid) {
-        db_.delete(TABLE_TRIP, "uuid = '" + uuid + "'", null);
+        wdb.delete(TABLE_TRIP, "uuid = '" + uuid + "'", null);
     }
 
     /**
@@ -212,7 +215,7 @@ public class DatabaseHelper {
     public void finalizeTrips() {
         ContentValues values = new ContentValues();
         values.put("status", 2);
-        db_.update(TABLE_TRIP, values, null, null);
+        wdb.update(TABLE_TRIP, values, null, null);
     }
 
     public void updateTrip(Trip trip) {
@@ -223,11 +226,12 @@ public class DatabaseHelper {
         values.put("score", trip.getScore());
         values.put("distance", trip.getDistance());
         values.put("status", trip.getStatus());
-        db_.update(TABLE_TRIP, values, "uuid='" + trip.uuid + "'", null);
+        wdb.update(TABLE_TRIP, values, "uuid='" + trip.uuid + "'", null);
     }
 
     public List<Trip> loadTrips() { return this.loadTrips(null); }
     public List<Trip> loadTrips(String whereClause) {
+
         DriveSenseToken user = this.getCurrentUser();
         List<Trip> trips = new ArrayList<Trip>();
         String selectQuery = "";
@@ -240,7 +244,8 @@ public class DatabaseHelper {
         if(whereClause != null)
             selectQuery += " and " + whereClause;
         selectQuery += " order by starttime desc;";
-        Cursor cursor = db_.rawQuery(selectQuery, null);
+        boolean ioOpen = wdb.isOpen();
+        Cursor cursor = wdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         if(cursor.getCount() == 0) {
             return trips;
@@ -255,23 +260,13 @@ public class DatabaseHelper {
         return trips;
     }
 
-    public void tripRemoveSensorData(long time) {
-        String [] tables = {TABLE_TRACE};
-        SQLiteDatabase tmpdb = SQLiteDatabase.openOrCreateDatabase(Constants.kDBFolder + String.valueOf(time).concat(".db"), null, null);
-        for(int i = 0; i < tables.length; ++i) {
-            String dropsql = "DROP TABLE IF EXISTS " + tables[i] + ";";
-            tmpdb.execSQL(dropsql);
-        }
-        tmpdb.close();
-    }
-
     //email TEXT, firstname TEXT, lastname TEXT, dstoken TEXT
-    /* ========================== UserObject Specific Database Operations =================================== */
+/* ========================== UserObject Specific Database Operations =================================== */
 
     public DriveSenseToken getCurrentUser() {
         DriveSenseToken user = null;
         String selectQuery = "SELECT  email, firstname, lastname, dstoken FROM " + TABLE_USER;
-        Cursor cursor = db_.rawQuery(selectQuery, null);
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         do {
             if(cursor.getCount() == 0) {
@@ -290,12 +285,11 @@ public class DatabaseHelper {
         values.put("firstname", token.firstname);
         values.put("lastname", token.lastname);
         values.put("dstoken", token.jwt);
-        db_.insert(TABLE_USER, null, values);
+        wdb.insert(TABLE_USER, null, values);
     }
 
     public void userLogout() {
         Log.d(TAG, "user logout processing in database");
-        db_.delete(TABLE_USER, null, null);
+        wdb.delete(TABLE_USER, null, null);
     }
-
 }

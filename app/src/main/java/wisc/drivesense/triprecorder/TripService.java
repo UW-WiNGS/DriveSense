@@ -82,7 +82,7 @@ public class TripService extends Service {
             curtrip_.setStatus(2);
             curtrip_.setEndTime(System.currentTimeMillis());
             DriveSenseApp.DBHelper().updateTrip(curtrip_);
-            TripUploadRequest.Start(this);
+            TripUploadRequest.Start();
         } else {
             Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_SHORT).show();
             DriveSenseApp.DBHelper().deleteTrip(curtrip_.uuid.toString());
@@ -99,12 +99,6 @@ public class TripService extends Service {
 
         mSensor = new Intent(this, SensorService.class);
         startService(mSensor);
-
-        //start recording
-        File dbDir = new File(Constants.kDBFolder);
-        if (!dbDir.exists()) {
-            dbDir.mkdirs();
-        }
 
         Toast.makeText(this, "Start trip in background!", Toast.LENGTH_SHORT).show();
         user = DriveSenseApp.DBHelper().getCurrentUser();
@@ -158,9 +152,12 @@ public class TripService extends Service {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            } else {
+                Log.d(TAG, "Recording stopped.");
             }
 
             if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+                Log.d(TAG, "Uploading traces.");
                 TripPayload payload = new TripPayload();
                 payload.guid = curtrip_.uuid.toString();
                 payload.traces = unsentMessages;
