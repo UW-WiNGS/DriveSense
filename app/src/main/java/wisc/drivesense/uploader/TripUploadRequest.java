@@ -53,6 +53,7 @@ public class TripUploadRequest extends GsonRequest<TripPayload> {
             TripPayload payload = new TripPayload();
             Trip trip = trips.get(0);
             payload.guid = trip.uuid.toString();
+            payload.distance = trip.getDistance();
             payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid);
             payload.status = trip.getStatus();
             Start(payload);
