@@ -12,22 +12,17 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import wisc.drivesense.R;
-import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.httpPayloads.GsonRequest;
-import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TripPayload;
-import wisc.drivesense.uploader.RequestQueueSingleton;
+import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Rating;
@@ -40,7 +35,6 @@ public class TripService extends Service {
     private long lastSent = 0;
     private final long SEND_INTERVAL = 1000;
     private DriveSenseToken user = null;
-    private DatabaseHelper dbHelper_ = null;
     public Trip curtrip_ = null;
     public Rating rating_ = null;
     public RealTimeTiltCalculation tiltCal_ = null;
@@ -85,12 +79,14 @@ public class TripService extends Service {
         //validate the trip based on distance and travel time
         if(curtrip_.getDistance() >= Constants.kTripMinimumDistance && curtrip_.getDuration() >= Constants.kTripMinimumDuration) {
             Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_SHORT).show();
-
+            curtrip_.setStatus(2);
+            curtrip_.setEndTime(System.currentTimeMillis());
+            DriveSenseApp.DBHelper().updateTrip(curtrip_);
+            TripUploadRequest.Start();
         } else {
             Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_SHORT).show();
-            dbHelper_.deleteTrip(curtrip_.getStartTime());
+            DriveSenseApp.DBHelper().deleteTrip(curtrip_.uuid.toString());
         }
-        dbHelper_.closeDatabase();
 
         stopSelf();
     }
@@ -104,18 +100,11 @@ public class TripService extends Service {
         mSensor = new Intent(this, SensorService.class);
         startService(mSensor);
 
-        //start recording
-        File dbDir = new File(Constants.kDBFolder);
-        if (!dbDir.exists()) {
-            dbDir.mkdirs();
-        }
-
         Toast.makeText(this, "Start trip in background!", Toast.LENGTH_SHORT).show();
-        dbHelper_ = new DatabaseHelper();
-        user = dbHelper_.getCurrentUser();
+        user = DriveSenseApp.DBHelper().getCurrentUser();
 
         curtrip_ = new Trip();
-        dbHelper_.insertTrip(curtrip_);
+        DriveSenseApp.DBHelper().insertTrip(curtrip_);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
     }
@@ -155,29 +144,26 @@ public class TripService extends Service {
                 curtrip_.setTilt(((Trace.Trip) trace).tilt);
                 curtrip_.setScore(((Trace.Trip) trace).score);
             }
-            unsentMessages.add(message);
-            TripPayload payload = new TripPayload();
-            if(System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+
+            if(!stoprecording) {
+                try {
+                    message.rowid = DriveSenseApp.DBHelper().insertSensorData(curtrip_.uuid.toString(), trace);
+                    unsentMessages.add(message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+                Log.d(TAG, "Uploading traces.");
+                TripPayload payload = new TripPayload();
                 payload.guid = curtrip_.uuid.toString();
                 payload.traces = unsentMessages;
                 payload.distance = curtrip_.getDistance();
                 lastSent = System.currentTimeMillis();
                 unsentMessages = new ArrayList<>();
 
-                GsonRequest<TripPayload> tripReq = new GsonRequest<TripPayload>(Request.Method.POST, Constants.kTripURL,
-                                payload, TripPayload.class, user.jwt) {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
-
-                    @Override
-                    public void onResponse(TripPayload response) {
-
-                    }
-                };
-                // Add the request to the RequestQueue.
-                RequestQueueSingleton.getInstance(context).getRequestQueue().add(tripReq);
+                TripUploadRequest.Start(payload);
             }
 
             long curtime = trace.time;
@@ -185,9 +171,6 @@ public class TripService extends Service {
                 stoprecording = true;
             } else {
                 stoprecording = false;
-            }
-            if(dbHelper_.isOpen() && stoprecording == false) {
-                dbHelper_.insertSensorData(curtrip_.uuid.toString(), trace);
             }
         }
 

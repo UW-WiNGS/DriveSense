@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 
 import java.util.List;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.GsonSingleton;
@@ -23,8 +24,6 @@ import wisc.drivesense.utility.Trip;
 public class HistoryActivity extends Activity {
 
     private final String TAG = "HistoryActivity";
-
-    private DatabaseHelper dbHelper_ = null;
 
     private ArrayAdapter<Trip> adapter_ = null;
     List<Trip> trips_ = null;
@@ -47,8 +46,7 @@ public class HistoryActivity extends Activity {
 
         ListView listView = (ListView)findViewById(R.id.listView);
 
-        dbHelper_ = new DatabaseHelper();
-        trips_ = dbHelper_.loadTrips();
+        trips_ = DriveSenseApp.DBHelper().loadTrips();
         adapter_ = new TripAdapter(this, trips_);
 
         listView.setAdapter(adapter_);
@@ -77,7 +75,7 @@ public class HistoryActivity extends Activity {
                     public void onClick(DialogInterface dialog, int pos) {
                         Log.d(TAG, "delete:" + position);
                         Trip trip = adapter_.getItem(position);
-                        dbHelper_.removeTrip(trip.getStartTime());
+                        DriveSenseApp.DBHelper().deleteTrip(trip.uuid.toString());
                         adapter_.remove(trip);
                     }
                 });
@@ -90,12 +88,5 @@ public class HistoryActivity extends Activity {
                 return true;
             }
         });
-    }
-
-    protected void onDestroy() {
-        if(dbHelper_ != null && dbHelper_.isOpen()) {
-            dbHelper_.closeDatabase();
-        }
-        super.onDestroy();
     }
 }

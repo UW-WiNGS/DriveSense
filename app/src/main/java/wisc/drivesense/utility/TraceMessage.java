@@ -15,6 +15,7 @@ public class TraceMessage {
     public String type;
     @Expose
     public Trace value;
+    public transient long rowid;
 
     public static TraceMessage FromIntent(Intent intent) {
         Gson gson = new Gson();

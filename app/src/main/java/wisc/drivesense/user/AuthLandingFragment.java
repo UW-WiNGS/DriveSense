@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.auth.api.Auth;
@@ -20,10 +19,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 
 import java.util.ArrayList;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.GsonRequest;
-import wisc.drivesense.uploader.RequestQueueSingleton;
 import wisc.drivesense.utility.Constants;
 
 public class AuthLandingFragment extends Fragment {
@@ -155,7 +154,7 @@ public class AuthLandingFragment extends Fragment {
             }
         };
         // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(this.getContext()).getRequestQueue().add(loginReq);
+        DriveSenseApp.RequestQueue().add(loginReq);
     }
     // endregion
 

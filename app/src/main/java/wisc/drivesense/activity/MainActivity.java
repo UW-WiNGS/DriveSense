@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -36,6 +37,7 @@ import java.io.File;
 
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
+import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
@@ -62,9 +64,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1001);
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if(permissionCheck == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1001);
+        }
+
 
         // Initializing Facebook Integration
 
@@ -80,10 +88,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         setSupportActionBar(mToolbar);
 
-        File dbDir = new File(Constants.kDBFolder);
-        if (!dbDir.exists()) {
-            dbDir.mkdirs();
-        }
         addListenerOnButton();
     }
 
@@ -92,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
             super.onStart();
     }
-
 
 
     private class TripServiceConnection implements ServiceConnection {
@@ -230,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
-                    //Start your service here
+                    Log.d(TAG, "Got permission to use location");
                 }
             }
         }
