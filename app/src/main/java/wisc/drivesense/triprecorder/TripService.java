@@ -152,8 +152,6 @@ public class TripService extends Service {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } else {
-                Log.d(TAG, "Recording stopped.");
             }
 
             if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
@@ -165,20 +163,7 @@ public class TripService extends Service {
                 lastSent = System.currentTimeMillis();
                 unsentMessages = new ArrayList<>();
 
-                GsonRequest<TripPayload> tripReq = new GsonRequest<TripPayload>(Request.Method.POST, Constants.kTripURL,
-                                payload, TripPayload.class, user) {
-                    @Override
-                    public void onErrorResponse(VolleyError error) { }
-
-                    @Override
-                    public void onResponse(TripPayload response) {
-                        for (TraceMessage trace : ((TripPayload)payload).traces) {
-                            DriveSenseApp.DBHelper().markTraceSynced(trace.rowid);
-                        }
-                    }
-                };
-                // Add the request to the RequestQueue.
-                DriveSenseApp.RequestQueue().add(tripReq);
+                TripUploadRequest.Start(payload);
             }
 
             long curtime = trace.time;
