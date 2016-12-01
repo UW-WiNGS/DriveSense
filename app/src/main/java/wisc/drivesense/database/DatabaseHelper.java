@@ -50,6 +50,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + TABLE_TRACE + "(id INTEGER PRIMARY KEY AUTOINCREMENT, tripid INTEGER, type TEXT, value TEXT, synced INTEGER,"
             + " FOREIGN KEY(tripid) REFERENCES "+TABLE_TRIP+"(id));";
 
+    //Index Create
+    private static final String CREATE_INDEX_TRACE="CREATE INDEX IF NOT EXISTS i1 ON "+ TABLE_TRACE +"(tripid,type)";
+
     private static final String DROP_TABLE = "DROP TABLE ";
 
     private SQLiteDatabase wdb;
@@ -66,6 +69,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_TRIP);
         db.execSQL(CREATE_TABLE_USER);
         db.execSQL(CREATE_TABLE_TRACE);
+        db.execSQL(CREATE_INDEX_TRACE);
     }
 
     @Override
@@ -74,6 +78,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DROP_TABLE+TABLE_TRIP+";");
         db.execSQL(DROP_TABLE+TABLE_USER+";");
         onCreate(db);
+    }
+
+    public void onOpen(SQLiteDatabase db) {
+        db.execSQL(CREATE_INDEX_TRACE);
+        Log.d(TAG, "Created index on traces");
     }
 
 

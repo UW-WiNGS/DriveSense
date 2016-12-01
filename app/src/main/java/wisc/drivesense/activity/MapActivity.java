@@ -40,13 +40,16 @@ import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
-public class MapActivity extends Activity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
+public class MapActivity extends Activity implements OnMapReadyCallback {
 
     static final LatLng madison_ = new LatLng(43.073052, -89.401230);
     private GoogleMap map_ = null;
     private Trip trip_;
     private List<Trace.Trip> points_;
     private static String TAG = "MapActivity";
+    private RadioButton speedButton;
+    private RadioButton scoreButton;
+    private RadioButton brakeButton;
 
 
     @Override
@@ -55,6 +58,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         setContentView(R.layout.activity_map);
 
         Log.d(TAG, "onCreate");
+
+        speedButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
+        scoreButton = (RadioButton) findViewById(R.id.radioButtonScore);
+        brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
 
         Intent intent = getIntent();
         trip_ = GsonSingleton.fromJson(intent.getStringExtra("Current Trip"), Trip.class);
@@ -70,7 +77,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
             }
         });
 
-        Gson gson = new Gson();
+        Gson gson = GsonSingleton.gson();
         Log.d(TAG, gson.toJson(trip_));
         if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
             points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
@@ -85,15 +92,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         map_ = null;
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-    }
-
-    public void onCameraChange(CameraPosition position) {
-        Log.d(TAG, String.valueOf(position.zoom));
-        Log.d(TAG, position.target.toString());
-
-        LatLngBounds bounds = map_.getProjection().getVisibleRegion().latLngBounds;
-        Log.d(TAG, bounds.toString());
-        //bounds.contains();
     }
 
     @Override
@@ -136,12 +134,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
 
         if(sz >= 2) {
             //deal with orientation change
-            RadioButton rButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
-            rButton.setChecked(true);
             plotRoute();
-
-
-            map.setOnCameraChangeListener(this);
         }
     }
 
@@ -166,9 +159,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
 
     private int getButtonIndex() {
         int index = -1;
-        RadioButton speedButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
-        RadioButton scoreButton = (RadioButton) findViewById(R.id.radioButtonScore);
-        RadioButton brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
+
         if(speedButton.isChecked()) {
             index = 2;
         } else if(scoreButton.isChecked()) {
@@ -270,20 +261,5 @@ public class MapActivity extends Activity implements OnMapReadyCallback, GoogleM
         Log.d(TAG, view.getId() + " is checked: " + checked);
         // Check which radio button was clicked
         plotRoute();
-        /*
-        switch(view.getId()) {
-            case R.id.radioButtonSpeed:
-                plotRoute();
-                break;
-            case R.id.radioButtonScore:
-                plotRoute();
-                break;
-            case R.id.radioButtonBrake:
-                plotRoute();
-                break;
-            default:
-                break;
-        }
-        */
     }
 }

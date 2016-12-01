@@ -26,6 +26,11 @@ android {
     }
 }
 
+configurations {
+    all*.exclude group: 'com.google.firebase', module: 'firebase-core'
+    all*.exclude group: 'com.google.firebase', module: 'firebase-iid'
+}
+
 repositories {
     mavenCentral()
 }
@@ -44,4 +49,4 @@ dependencies {
     compile 'com.android.support:support-v4:25.0.0'
 }
 
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
