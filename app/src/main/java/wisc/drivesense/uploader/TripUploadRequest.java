@@ -9,6 +9,7 @@ import java.util.List;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.httpPayloads.CompressedGSONRequest;
 import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
@@ -22,7 +23,7 @@ import static wisc.drivesense.utility.Constants.kBatchUploadCount;
  * Created by Alex Sherman on 11/22/2016.
  */
 
-public class TripUploadRequest extends GsonRequest<TripPayload> {
+public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
     private static volatile boolean running = false;
     private static volatile int failureCount = 0;
     private static final int FAILURE_THRESHOLD = 10;

@@ -27,7 +27,7 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
     protected Object payload;
     final String TAG = "GsonRequest";
     private final Class<T> responseClass;
-    private DriveSenseToken dsToken = null;
+    protected DriveSenseToken dsToken = null;
 
     public GsonRequest(int method, String url, Object body, Class<T> responseClass, DriveSenseToken dsToken) {
         this(method, url, body, responseClass);
