@@ -130,7 +130,7 @@ public class TripService extends Service {
 
             if(trace instanceof Trace.GPS) {
                 Trace.GPS gps = (Trace.GPS)trace;
-                Log.d(TAG, "Got message: " + trace.toJson());
+                //Log.d(TAG, "Got message: " + trace.toJson());
 
                 if(gps.speed != 0.0) {
                     lastSpeedNonzero = gps.time;
@@ -155,7 +155,7 @@ public class TripService extends Service {
             }
 
             if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
-                Log.d(TAG, "Uploading traces.");
+                Log.d(TAG, "Uploading "+unsentMessages.size()+" traces.");
                 TripPayload payload = new TripPayload();
                 payload.guid = curtrip_.uuid.toString();
                 payload.traces = unsentMessages;
@@ -168,7 +168,7 @@ public class TripService extends Service {
 
             long curtime = trace.time;
             if(curtime - lastSpeedNonzero > Constants.kInactiveDuration || curtime - lastGPS > Constants.kInactiveDuration) {
-                stoprecording = true;
+                //stoprecording = true;
             } else {
                 stoprecording = false;
             }

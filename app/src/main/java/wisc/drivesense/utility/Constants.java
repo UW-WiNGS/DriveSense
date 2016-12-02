@@ -19,6 +19,7 @@ public class Constants {
 
     public static final double kSampleRate = 1.0;
     public static final double kRecordingInterval = 100;
+    public static final int kBatchUploadCount = 5000;
 
 
     private static final String kDomain = "http://drivesensetest.wirover.com:8000";

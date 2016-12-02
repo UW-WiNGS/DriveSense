@@ -16,6 +16,8 @@ import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
+import static wisc.drivesense.utility.Constants.kBatchUploadCount;
+
 /**
  * Created by Alex Sherman on 11/22/2016.
  */
@@ -54,7 +56,7 @@ public class TripUploadRequest extends GsonRequest<TripPayload> {
             Trip trip = trips.get(0);
             payload.guid = trip.uuid.toString();
             payload.distance = trip.getDistance();
-            payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid);
+            payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid, kBatchUploadCount);
             payload.status = trip.getStatus();
             Start(payload);
         }
@@ -84,13 +86,16 @@ public class TripUploadRequest extends GsonRequest<TripPayload> {
     @Override
     public void onResponse(TripPayload response) {
         failureCount = 0;
-        for (TraceMessage trace : ((TripPayload)payload).traces) {
-            DriveSenseApp.DBHelper().markTraceSynced(trace.rowid);
+        Long[] traceids = new Long[((TripPayload)payload).traces.size()];
+
+        for (int i = 0; i < traceids.length; i++) {
+            traceids[i] = ((TripPayload)payload).traces.get(i).rowid;
         }
+        DriveSenseApp.DBHelper().markTracesSynced(traceids);
 
         // Null check is apparently necessary because java is dumb at autoboxing
         if(((TripPayload)payload).status != null && ((TripPayload)payload).status == 2 &&
-                DriveSenseApp.DBHelper().getUnsentTraces(((TripPayload)payload).guid).isEmpty())
+                DriveSenseApp.DBHelper().getUnsentTraces(((TripPayload)payload).guid, 1).isEmpty())
             DriveSenseApp.DBHelper().markTripSynced(((TripPayload)payload).guid);
         onComplete();
     }

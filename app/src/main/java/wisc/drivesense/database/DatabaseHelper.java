@@ -133,10 +133,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public void markTraceSynced(Long traceid) {
+    public void markTracesSynced(Long[] traceids) {
         ContentValues values = new ContentValues();
         values.put("synced", 1);
-        wdb.update(TABLE_TRACE, values, "rowid=" + traceid.toString(), null);
+        StringBuilder sb = new StringBuilder();
+        String delim = "";
+        for (Long i : traceids) {
+            sb.append(delim).append(i);
+            delim = ",";
+        }
+        String whereClause = "rowid IN (" + sb.toString() +")";
+        wdb.update(TABLE_TRACE, values, whereClause, null);
     }
 
     public void markTripSynced(String uuid) {
@@ -160,9 +167,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public List<TraceMessage> getUnsentTraces(String uuid) {
+    public List<TraceMessage> getUnsentTraces(String uuid, int limit) {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
-                + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"'";
+                + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"' LIMIT "+limit;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         List<TraceMessage> traces = cursorToTraces(cursor);
         return traces;
