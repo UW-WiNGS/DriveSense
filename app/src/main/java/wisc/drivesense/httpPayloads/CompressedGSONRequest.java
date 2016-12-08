@@ -1,5 +1,7 @@
 package wisc.drivesense.httpPayloads;
 
+import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.VolleyError;
 
@@ -17,7 +19,7 @@ import wisc.drivesense.utility.GsonSingleton;
  */
 
 public abstract class CompressedGSONRequest<T> extends GsonRequest<T> {
-
+    private final String TAG = "CompressedGSONRequest";
     public CompressedGSONRequest(int method, String url, Object body, Class<T> responseClass, DriveSenseToken dsToken) {
         super(method, url, body, responseClass);
         this.dsToken = dsToken;
@@ -50,6 +52,8 @@ public abstract class CompressedGSONRequest<T> extends GsonRequest<T> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return os.toByteArray();
+        byte[] output = os.toByteArray();
+        Log.d(TAG, "Compressed payload from "+jsonBytes.length + " bytes to "+output.length+" bytes, a compression ratio of "+output.length/(float)jsonBytes.length);
+        return output;
     }
 }

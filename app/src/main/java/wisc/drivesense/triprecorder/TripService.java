@@ -163,6 +163,8 @@ public class TripService extends Service {
                 lastSent = System.currentTimeMillis();
                 unsentMessages = new ArrayList<>();
 
+                DriveSenseApp.DBHelper().updateTrip(curtrip_);
+
                 TripUploadRequest.Start(payload);
             }
 
