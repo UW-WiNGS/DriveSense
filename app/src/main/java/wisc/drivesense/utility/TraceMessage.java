@@ -23,7 +23,7 @@ public class TraceMessage {
     }
 
     public TraceMessage(Trace trace) {
-        this.type = trace.getClass().getSimpleName();
+        this.type = GsonSingleton.typeNameLookup.get(trace.getClass());
         this.value = trace;
     }
 

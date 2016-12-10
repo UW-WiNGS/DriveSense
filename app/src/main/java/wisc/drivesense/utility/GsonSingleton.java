@@ -11,6 +11,7 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * Created by Alex Sherman on 11/10/2016.
@@ -19,7 +20,7 @@ import java.util.Map;
 public class GsonSingleton implements JsonDeserializer<TraceMessage> {
     private static Gson _gson;
 
-    private static final Map<String, Type> typeLookup;
+    public static final Map<String, Type> typeLookup;
     static
     {
         typeLookup = new HashMap<String, Type>();
@@ -30,6 +31,13 @@ public class GsonSingleton implements JsonDeserializer<TraceMessage> {
         typeLookup.put(Trace.Gyro.class.getSimpleName(), Trace.Gyro.class);
         typeLookup.put(Trace.Rotation.class.getSimpleName(), Trace.Rotation.class);
         typeLookup.put(Trace.Magnetometer.class.getSimpleName(), Trace.Magnetometer.class);
+    }
+    public static final Map<Type, String> typeNameLookup;
+    static {
+        typeNameLookup = new HashMap<Type, String>();
+        for (Map.Entry<String, Type> entry: typeLookup.entrySet()) {
+            typeNameLookup.put(entry.getValue(), entry.getKey());
+        }
     }
 
     public static Gson gson() {
