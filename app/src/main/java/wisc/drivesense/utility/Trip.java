@@ -30,6 +30,7 @@ public class Trip implements Serializable {
     private String TAG = "Trip";
 
     public Trip(int id, UUID uuid, long startTime, long endTime) {
+        this();
         this.id = id;
         this.uuid = uuid;
         this.startTime_ = startTime;

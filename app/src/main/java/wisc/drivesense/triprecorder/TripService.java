@@ -11,15 +11,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.VolleyError;
-
-import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.DriveSenseApp;
-import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
@@ -36,11 +32,8 @@ public class TripService extends Service {
     private final long SEND_INTERVAL = 1000;
     private DriveSenseToken user = null;
     public Trip curtrip_ = null;
-    public Rating rating_ = null;
-    public RealTimeTiltCalculation tiltCal_ = null;
 
     public Binder _binder = new TripServiceBinder();
-    private AtomicBoolean _isRunning = new AtomicBoolean(false);
 
     private final String TAG = "Trip Service";
 
@@ -58,19 +51,45 @@ public class TripService extends Service {
         public Trip getTrip() {
             return curtrip_;
         }
-        public boolean isRunning() {
-            return _isRunning.get();
-        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startService();
+        if(intent == null) {
+            //Null intent means the service was killed and is being restarted by android
+            curtrip_ = DriveSenseApp.DBHelper().getLastTrip();
+            if(curtrip_==null) {
+                curtrip_ = new Trip();
+                DriveSenseApp.DBHelper().insertTrip(curtrip_);
+                Log.d(TAG, "TripService was restarted, but no unfinalized trip was found");
+            } else {
+                List<Trace.Trip> points_ = DriveSenseApp.DBHelper().getGPSPoints(curtrip_.uuid.toString());
+                curtrip_.setGPSPoints(points_);
+            }
+            Log.d(TAG, "Trip distance: "+curtrip_.getDistance() + " gps length: "+curtrip_.getGPSPoints().size());
+            Log.d(TAG, "Restart driving detection service after being killed by android. UUID: "+curtrip_.uuid);
+
+        } else {
+            curtrip_ = new Trip();
+            DriveSenseApp.DBHelper().insertTrip(curtrip_);
+            Log.d(TAG, "Start driving detection service. UUID: "+curtrip_.uuid);
+        }
+
+
+        mSensor = new Intent(this, SensorService.class);
+        startService(mSensor);
+
+        Toast.makeText(this, "Trip recording service starting in background.", Toast.LENGTH_SHORT).show();
+        user = DriveSenseApp.DBHelper().getCurrentUser();
+
+
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
+
         return START_STICKY;
     }
 
     public void onDestroy() {
-        Log.d(TAG, "stop driving detection service");
-        _isRunning.set(false);
+        Log.d(TAG, "onDestroy for tripservice called");
         stopService(mSensor);
         mSensor = null;
 
@@ -89,24 +108,6 @@ public class TripService extends Service {
         }
 
         stopSelf();
-    }
-
-
-
-    private void startService() {
-        _isRunning.set(true);
-        Log.d(TAG, "start driving detection service");
-
-        mSensor = new Intent(this, SensorService.class);
-        startService(mSensor);
-
-        Toast.makeText(this, "Start trip in background!", Toast.LENGTH_SHORT).show();
-        user = DriveSenseApp.DBHelper().getCurrentUser();
-
-        curtrip_ = new Trip();
-        DriveSenseApp.DBHelper().insertTrip(curtrip_);
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
     }
 
 
@@ -148,6 +149,7 @@ public class TripService extends Service {
             if(!stoprecording) {
                 try {
                     message.rowid = DriveSenseApp.DBHelper().insertSensorData(curtrip_.uuid.toString(), trace);
+                    DriveSenseApp.DBHelper().updateTrip(curtrip_);
                     unsentMessages.add(message);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -162,8 +164,6 @@ public class TripService extends Service {
                 payload.distance = curtrip_.getDistance();
                 lastSent = System.currentTimeMillis();
                 unsentMessages = new ArrayList<>();
-
-                DriveSenseApp.DBHelper().updateTrip(curtrip_);
 
                 TripUploadRequest.Start(payload);
             }

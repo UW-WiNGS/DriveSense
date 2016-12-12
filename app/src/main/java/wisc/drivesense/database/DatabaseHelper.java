@@ -207,17 +207,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Trip getTrip(String uuid) {
-        String selectQuery = "SELECT id, uuid, starttime, endtime, distance, score, deleted FROM " + TABLE_TRIP + " WHERE uuid = '" + uuid + "';";
-        Cursor cursor = rdb.rawQuery(selectQuery, null);
-        cursor.moveToFirst();
-        Trip trip = null;
-        do {
-            if(cursor.getCount() == 0) {
-                break;
-            }
-            trip = constructTripByCursor(cursor);
-        } while (cursor.moveToNext());
-        return trip;
+        List<Trip> unfinished = loadTrips("uuid='"+uuid+"'");
+        if(unfinished.size() != 1) {
+            return null;
+        } else {
+            return unfinished.get(0);
+        }
+    }
+
+    public Trip getLastTrip() {
+        List<Trip> unfinished = loadTrips();
+        Log.d(TAG, unfinished.toString());
+        if(unfinished.size() < 1) {
+            return null;
+        } else {
+            return unfinished.get(0);
+        }
     }
 
     public void deleteTrip(String uuid) {
@@ -229,6 +234,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * trips.
      */
     public void finalizeTrips() {
+        Log.d(TAG, "finalizing trips");
         ContentValues values = new ContentValues();
         values.put("status", 2);
         wdb.update(TABLE_TRIP, values, null, null);

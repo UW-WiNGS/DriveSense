@@ -78,7 +78,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         });
 
         Gson gson = GsonSingleton.gson();
-        Log.d(TAG, gson.toJson(trip_));
         if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
             points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
             trip_.setGPSPoints(points_);

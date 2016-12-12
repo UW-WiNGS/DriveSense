@@ -3,7 +3,6 @@ package wisc.drivesense.activity;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,12 +10,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -31,13 +28,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
-import java.io.File;
-
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
-import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
@@ -91,19 +83,13 @@ public class MainActivity extends AppCompatActivity {
         addListenerOnButton();
     }
 
-
-    @Override
-    public void onStart() {
-            super.onStart();
-    }
-
-
     private class TripServiceConnection implements ServiceConnection {
         private TripService.TripServiceBinder binder = null;
 
         public void onServiceConnected(ComponentName className, IBinder service) {
             binder = ((TripService.TripServiceBinder) service);
             curtrip_ = binder.getTrip();
+            Log.d(TAG, "Set _curtrip from binder");
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -123,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPuase");
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         if (mTripConnection != null) {
             unbindService(mTripConnection);
         }
@@ -140,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
             mTripServiceIntent = new Intent(this, TripService.class);
             mTripConnection = new TripServiceConnection();
             bindService(mTripServiceIntent, mTripConnection, Context.BIND_AUTO_CREATE);
+            LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
         } else {
             btnStart.setBackgroundResource(R.drawable.start_button);
             btnStart.setText(R.string.start_button);
@@ -242,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
     private synchronized void startRunning() {
         Log.d(TAG, "start running");
 
-        //curtrip_ = new Trip(System.currentTimeMillis());
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
 
         if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
