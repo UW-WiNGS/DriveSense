@@ -21,8 +21,6 @@ public class Trip implements Serializable {
     private double score_ = 10.0;
     private int status_ = 1;
     private List<Trace.Trip> gps_;
-    private LatLng start_ = null;
-    private LatLng dest_ = null;
     private double tilt_;
 
     //private Rating rating = null;
@@ -70,8 +68,16 @@ public class Trip implements Serializable {
     public int getStatus() {return this.status_;}
 
 
-    public LatLng getStartPoint() {return start_;}
-    public LatLng getEndPoint() {return dest_;}
+    public LatLng getStartPoint() {
+        if(gps_ == null || gps_.size() < 1)
+            return null;
+        return new LatLng(gps_.get(0).lat, gps_.get(0).lng);
+    }
+    public LatLng getEndPoint() {
+        if(gps_ == null || gps_.size() < 1)
+            return null;
+        return new LatLng(gps_.get(gps_.size() - 1).lat, gps_.get(gps_.size() - 1).lng);
+    }
 
 
     /**
@@ -84,10 +90,6 @@ public class Trip implements Serializable {
 
         if(trace instanceof Trace.Trip)
             gps_.add((Trace.Trip)trace);
-        if(start_ == null) {
-            start_ = new LatLng(trace.lat, trace.lng);
-        }
-        dest_ = new LatLng(trace.lat, trace.lng);
         speed_ = trace.speed;
         this.endTime_ = trace.time;
 
@@ -106,8 +108,6 @@ public class Trip implements Serializable {
             return;
         }
         this.gps_ = gps;
-        this.start_ = new LatLng(gps.get(0).lat, gps.get(0).lng);
-        this.dest_ = new LatLng(gps.get(sz - 1).lat, gps.get(sz - 1).lng);
     }
 
     public List<Trace.Trip> getGPSPoints() {

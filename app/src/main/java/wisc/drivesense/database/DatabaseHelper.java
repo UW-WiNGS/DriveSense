@@ -178,7 +178,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public List<Trace.Trip> getGPSPoints(String uuid) {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
-                + " on trace.tripid = trip.id WHERE type = '" + Trace.Trip.class.getSimpleName() + "' and trip.uuid = '" + uuid +"'";
+                + " on trace.tripid = trip.id WHERE type = '" + Trace.Trip.class.getSimpleName() + "' and trip.uuid = '" + uuid +"' ORDER BY id ASC";
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         ArrayList<Trace.Trip> res = new ArrayList<>();
         for (TraceMessage tm : cursorToTraces(cursor)) {
