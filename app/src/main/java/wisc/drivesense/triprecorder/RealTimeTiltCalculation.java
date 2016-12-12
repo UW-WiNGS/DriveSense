@@ -58,7 +58,7 @@ public class RealTimeTiltCalculation {
 		}
 		double x = curSmoothedAccelerometer.x;
 		double z = curSmoothedAccelerometer.z;
-		double angle = 0.0;
+		double angle;
 		if(z == 0.0) {
 			angle = x > 0.0 ? -1.57 : 1.57;
 		} else {

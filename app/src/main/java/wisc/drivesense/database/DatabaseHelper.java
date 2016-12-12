@@ -169,11 +169,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"' LIMIT "+limit;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
-        List<TraceMessage> traces = cursorToTraces(cursor);
-        return traces;
+        return cursorToTraces(cursor);
     }
     /**
-     * @brief get the gps points of a trip, which is identified by the start time (the name of the database)
+     * Get the gps points of a trip, which is identified by the start time (the name of the database)
      * @param uuid the id of the trip
      * @return a list of trace, or gps points
      */
@@ -254,7 +253,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         DriveSenseToken user = this.getCurrentUser();
         List<Trip> trips = new ArrayList<Trip>();
-        String selectQuery = "";
+        String selectQuery;
         if(user == null) {
             selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"'";
 
@@ -264,7 +263,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if(whereClause != null)
             selectQuery += " and " + whereClause;
         selectQuery += " order by starttime desc;";
-        boolean ioOpen = wdb.isOpen();
         Cursor cursor = wdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         if(cursor.getCount() == 0) {
@@ -284,7 +282,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 /* ========================== UserObject Specific Database Operations =================================== */
 
     public DriveSenseToken getCurrentUser() {
-        DriveSenseToken user = null;
+        DriveSenseToken user;
         String selectQuery = "SELECT  email, firstname, lastname, dstoken FROM " + TABLE_USER;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         if(cursor.getCount() == 0) {

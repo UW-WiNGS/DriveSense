@@ -76,7 +76,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        Gson gson = GsonSingleton.gson();
         if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
             points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
             trip_.setGPSPoints(points_);
@@ -141,11 +140,11 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         List<BitmapDescriptor> res = new ArrayList<BitmapDescriptor>();
         int width = 10, height = 10;
 
-        for(int i = 0; i < colors.length; ++i) {
+        for (int color : colors) {
             Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bmp);
             Paint paint = new Paint();
-            paint.setColor(colors[i]);
+            paint.setColor(color);
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(width / 2, height / 2, 5, paint);
 
@@ -156,7 +155,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     }
 
     private int getButtonIndex() {
-        int index = -1;
+        int index;
 
         if(speedButton.isChecked()) {
             index = 2;
@@ -206,7 +205,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         for (int i = 0; i < sz; i+=rate) {
             Trace.Trip point = points_.get(i);
 
-            BitmapDescriptor bitmapDescriptor = null;
+            BitmapDescriptor bitmapDescriptor;
 
             if(index == 2) {
                 //speed

@@ -35,7 +35,6 @@ public class UserActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        final AppCompatActivity self = this;
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_user);

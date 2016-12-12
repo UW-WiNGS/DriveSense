@@ -29,14 +29,12 @@ public class SettingActivity extends AppCompatActivity {
 
     public static boolean isAutoMode(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean cbValue = sharedPref.getBoolean("pref_auto", false);
-        return cbValue;
+        return sharedPref.getBoolean("pref_auto", false);
     }
 
     public static boolean showMapWhileDriving(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean showMap = sharedPref.getBoolean("showMap", false);
-        return showMap;
+        return sharedPref.getBoolean("showMap", false);
     }
 
 
