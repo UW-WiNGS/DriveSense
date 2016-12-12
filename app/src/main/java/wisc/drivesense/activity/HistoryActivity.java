@@ -11,13 +11,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.google.gson.Gson;
-
 import java.util.List;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trip;
 

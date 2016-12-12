@@ -97,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    ;
     private Intent mTripServiceIntent = null;
     private ServiceConnection mTripConnection = null;
 

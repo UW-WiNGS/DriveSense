@@ -23,7 +23,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
 import wisc.drivesense.httpPayloads.GsonRequest;

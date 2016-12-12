@@ -3,7 +3,6 @@ package wisc.drivesense.httpPayloads;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.VolleyError;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

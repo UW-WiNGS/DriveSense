@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.database.DatabaseHelper;
 
 /**
  * Created by peter on 10/29/16.

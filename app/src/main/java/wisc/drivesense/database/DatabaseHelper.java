@@ -10,8 +10,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import java.io.File;
-import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -289,14 +287,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         DriveSenseToken user = null;
         String selectQuery = "SELECT  email, firstname, lastname, dstoken FROM " + TABLE_USER;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
+        if(cursor.getCount() == 0) {
+            return null;
+        }
         cursor.moveToFirst();
-        do {
-            if(cursor.getCount() == 0) {
-                break;
-            }
-            user = DriveSenseToken.InstantiateFromJWT(cursor.getString(3));
-            break;
-        } while (cursor.moveToNext());
+        user = DriveSenseToken.InstantiateFromJWT(cursor.getString(3));
         return user;
     }
 

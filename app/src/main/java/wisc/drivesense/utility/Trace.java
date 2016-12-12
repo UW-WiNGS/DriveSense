@@ -9,9 +9,9 @@ import java.io.Serializable;
 
 public abstract class Trace implements Serializable {
 
-    public static interface IVector {
-        public float[] values();
-        public void values(float[] v);
+    public interface IVector {
+        float[] values();
+        void values(float[] v);
     }
     public static class Vector3 extends Trace implements IVector {
         public float x, y, z;

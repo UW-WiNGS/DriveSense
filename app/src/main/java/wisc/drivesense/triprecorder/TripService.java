@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.httpPayloads.TripPayload;
@@ -21,7 +20,6 @@ import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
-import wisc.drivesense.utility.Rating;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;

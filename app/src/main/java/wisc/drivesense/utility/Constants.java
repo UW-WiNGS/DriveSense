@@ -39,7 +39,7 @@ public class Constants {
 
     public static final double kExponentialMovingAverageAlpha = 0.4;//0.3;
 
-    public static final long kInactiveDuration = 1 * 60 * 1000; //millisecond
+    public static final long kInactiveDuration = 60 * 1000; //millisecond
     public static final long kFileUploadMaxSize = 10 * 1000000; //byte
 
 

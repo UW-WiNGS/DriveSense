@@ -1,7 +1,5 @@
 package wisc.drivesense.triprecorder;
 
-import android.util.Log;
-
 import java.util.LinkedList;
 import java.util.List;
 
