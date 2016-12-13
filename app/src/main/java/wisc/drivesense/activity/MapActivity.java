@@ -63,7 +63,8 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
 
         Intent intent = getIntent();
-        trip_ = GsonSingleton.fromJson(intent.getStringExtra("Current Trip"), Trip.class);
+        String uuid = intent.getStringExtra("uuid");
+        trip_ = DriveSenseApp.DBHelper().getTrip(uuid);
 
         Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
 

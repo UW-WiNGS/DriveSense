@@ -204,11 +204,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Trip getTrip(String uuid) {
-        List<Trip> unfinished = loadTrips("uuid='"+uuid+"'");
-        if(unfinished.size() != 1) {
+        List<Trip> trips = loadTrips("uuid='"+uuid+"'");
+        if(trips.size() != 1) {
             return null;
         } else {
-            return unfinished.get(0);
+            return trips.get(0);
         }
     }
 

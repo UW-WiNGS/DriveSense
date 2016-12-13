@@ -55,7 +55,7 @@ public class HistoryActivity extends Activity {
 
                 Trip trip = adapter_.getItem(position);
                 Intent intent = new Intent(HistoryActivity.this, MapActivity.class);
-                intent.putExtra("Current Trip", GsonSingleton.toJson(trip));
+                intent.putExtra("uuid", trip.uuid.toString());
                 startActivity(intent);
             }
 

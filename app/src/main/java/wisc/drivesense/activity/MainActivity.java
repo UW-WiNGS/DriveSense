@@ -179,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                     btnStart.setBackgroundResource(R.drawable.start_button);
                     btnStart.setText(R.string.start_button);
 
-
                     showDriveRating();
                 }
             }
@@ -325,11 +324,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void showDriveRating() {
-        Log.d(TAG, "in showDriveRating");
-        String trip_string = GsonSingleton.toJson(curtrip_);
-        Log.d(TAG, trip_string);
         Intent intent = new Intent(this, MapActivity.class);
-        intent.putExtra("Current Trip", trip_string);
+        intent.putExtra("uuid", curtrip_.uuid.toString());
         startActivity(intent);
     }
 
