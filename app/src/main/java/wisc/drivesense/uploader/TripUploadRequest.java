@@ -46,7 +46,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
      */
     public static synchronized void Start() {
         if(!running) {
-            List<Trip> trips = DriveSenseApp.DBHelper().loadTrips("synced = 0 and status = 2");
+            List<Trip> trips = DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1");
             if(trips.size() == 0) return;
             TripPayload payload = new TripPayload();
             Trip trip = trips.get(0);
@@ -59,7 +59,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
     }
 
     private static boolean needsUpload() {
-        return DriveSenseApp.DBHelper().loadTrips("synced = 0 and status = 2").size() > 0;
+        return DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1").size() > 0;
     }
 
 
@@ -90,7 +90,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
         DriveSenseApp.DBHelper().markTracesSynced(traceids);
 
         // Null check is apparently necessary because java is dumb at autoboxing
-        if(((TripPayload)payload).status != null && ((TripPayload)payload).status == 2 &&
+        if(((TripPayload)payload).status != null && ((TripPayload)payload).status != 1 &&
                 DriveSenseApp.DBHelper().getUnsentTraces(((TripPayload)payload).guid, 1).isEmpty())
             DriveSenseApp.DBHelper().markTripSynced(((TripPayload)payload).guid);
         onComplete();

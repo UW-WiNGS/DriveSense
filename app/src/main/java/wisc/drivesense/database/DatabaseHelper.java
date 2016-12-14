@@ -223,7 +223,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void deleteTrip(String uuid) {
-        wdb.delete(TABLE_TRIP, "uuid = '" + uuid + "'", null);
+        ContentValues values = new ContentValues();
+        values.put("status", 0);
+        values.put("synced", false);
+        wdb.update(TABLE_TRIP, values, "uuid='" + uuid + "'", null);
     }
 
     /**
@@ -234,7 +237,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "finalizing trips");
         ContentValues values = new ContentValues();
         values.put("status", 2);
-        wdb.update(TABLE_TRIP, values, null, null);
+        wdb.update(TABLE_TRIP, values, "status = 1", null);
     }
 
     public void updateTrip(Trip trip) {
@@ -255,10 +258,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Trip> trips = new ArrayList<Trip>();
         String selectQuery;
         if(user == null) {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"'";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"' AND status = 2";
 
         } else {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '"+"')";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '"+"') AND status = 2";
         }
         if(whereClause != null)
             selectQuery += " and " + whereClause;

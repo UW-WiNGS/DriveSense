@@ -15,6 +15,7 @@ import java.util.List;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
+import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trip;
 
@@ -74,6 +75,7 @@ public class HistoryActivity extends Activity {
                         Trip trip = adapter_.getItem(position);
                         DriveSenseApp.DBHelper().deleteTrip(trip.uuid.toString());
                         adapter_.remove(trip);
+                        TripUploadRequest.Start();
                     }
                 });
                 showPlace.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
