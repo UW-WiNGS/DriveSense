@@ -32,15 +32,8 @@ public class Constants {
     public static final String kGoogleSignInURL = kDomain + "/auth/google";
     public static final String kFacebookSignInURL = kDomain + "/auth/facebook";
 
-    public static final int kNumberOfTripsDisplay = 20;
-    public static final double kTripMinimumDuration = 0; //mins
-    public static final double kTripMinimumDistance = 0; //meter
-
-
     public static final double kExponentialMovingAverageAlpha = 0.4;//0.3;
 
-    public static final long kInactiveDuration = 60 * 1000; //millisecond
-    public static final long kFileUploadMaxSize = 10 * 1000000; //byte
 
 
 }

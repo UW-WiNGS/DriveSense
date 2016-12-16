@@ -3,12 +3,14 @@ package wisc.drivesense.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -77,7 +79,11 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        if (trip_.getDistance() >= Constants.kTripMinimumDistance && trip_.getDuration() >= Constants.kTripMinimumDuration) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        //minimum distance is in meters
+        int minimumDistance = sharedPref.getInt("minimum_distance", this.getResources().getInteger(R.integer.default_minimum_distance));
+
+        if (trip_.getDistance() >= minimumDistance) {
             points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
             trip_.setGPSPoints(points_);
             //crash when there is no gps

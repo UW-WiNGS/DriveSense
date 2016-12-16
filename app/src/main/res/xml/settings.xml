@@ -14,6 +14,22 @@
         android:key="showMap" />
 
     <EditTextPreference
+        android:defaultValue="@integer/default_pause_timeout"
+        android:inputType="number"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Pause Timeout"
+        android:key="pause_timeout"
+        android:summary="@string/pause_timeout_summary" />
+    <EditTextPreference
+        android:defaultValue="@integer/default_minimum_distance"
+        android:inputType="number"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Minimum trip Distance"
+        android:key="minimum_distance"
+        android:summary="Minimum trip length in meters for it to be saved." />
+    <EditTextPreference
         android:key="pre_id"
         android:summary="Your device id"
         android:title="Your device id"

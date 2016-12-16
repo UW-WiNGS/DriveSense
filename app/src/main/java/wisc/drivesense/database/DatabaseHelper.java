@@ -274,9 +274,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         do {
             Trip trip = constructTripByCursor(cursor);
             trips.add(trip);
-            if(trips.size() >= Constants.kNumberOfTripsDisplay) {
-                break;
-            }
         } while (cursor.moveToNext());
         return trips;
     }

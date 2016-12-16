@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="default_pause_timeout">120</integer>
+    <integer name="default_minimum_distance">500</integer>
+</resources>

@@ -5,8 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import wisc.drivesense.DriveSenseApp;
+import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
@@ -93,15 +96,19 @@ public class TripService extends Service {
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
 
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        //minimum distance is in meters
+        int minimumDistance = sharedPref.getInt("minimum_distance", this.getResources().getInteger(R.integer.default_minimum_distance));
+
         //validate the trip based on distance and travel time
-        if(curtrip_.getDistance() >= Constants.kTripMinimumDistance && curtrip_.getDuration() >= Constants.kTripMinimumDuration) {
-            Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_SHORT).show();
+        if(curtrip_.getDistance() >= minimumDistance) {
+            Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_LONG).show();
             curtrip_.setStatus(2);
             curtrip_.setEndTime(System.currentTimeMillis());
             DriveSenseApp.DBHelper().updateTrip(curtrip_);
             TripUploadRequest.Start();
         } else {
-            Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_LONG).show();
             DriveSenseApp.DBHelper().deleteTrip(curtrip_.uuid.toString());
         }
 
@@ -167,8 +174,10 @@ public class TripService extends Service {
             }
 
             long curtime = trace.time;
-            if(curtime - lastSpeedNonzero > Constants.kInactiveDuration || curtime - lastGPS > Constants.kInactiveDuration) {
-                //stoprecording = true;
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+            int pauseTimeout = sharedPref.getInt("pause_timeout", context.getResources().getInteger(R.integer.default_pause_timeout)) * 1000;
+            if(curtime - lastSpeedNonzero > pauseTimeout) {
+                stoprecording = true;
             } else {
                 stoprecording = false;
             }
