@@ -68,6 +68,11 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         String uuid = intent.getStringExtra("uuid");
         trip_ = DriveSenseApp.DBHelper().getTrip(uuid);
 
+        if(trip_ == null) {
+            finish();
+            return;
+        }
+
         Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
 
         ratingToolbar.setTitle("Your Trip");
@@ -79,17 +84,11 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        //minimum distance is in meters
-        int minimumDistance = sharedPref.getInt("minimum_distance", this.getResources().getInteger(R.integer.default_minimum_distance));
+        points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
+        trip_.setGPSPoints(points_);
+        //crash when there is no gps
+        Log.d(TAG, String.valueOf(points_.size()));
 
-        if (trip_.getDistance() >= minimumDistance) {
-            points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
-            trip_.setGPSPoints(points_);
-            //crash when there is no gps
-            Log.d(TAG, String.valueOf(points_.size()));
-
-        }
         TextView ratingView = (TextView) findViewById(R.id.rating);
         ratingView.setText(String.format("%.1f", trip_.getScore()));
 
@@ -117,6 +116,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         map_.setIndoorEnabled(true);
         map_.setBuildingsEnabled(true);
         map_.getUiSettings().setZoomControlsEnabled(true);
+
+        if(trip_ == null) {
+            return;
+        }
 
         LatLng start;
         int sz = trip_.getGPSPoints().size();

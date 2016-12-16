@@ -258,10 +258,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         List<Trip> trips = new ArrayList<Trip>();
         String selectQuery;
         if(user == null) {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"' AND status = 2";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"'";
 
         } else {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '"+"') AND status = 2";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '"+"')";
         }
         if(whereClause != null)
             selectQuery += " and " + whereClause;

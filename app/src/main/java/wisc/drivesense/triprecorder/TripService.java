@@ -18,6 +18,7 @@ import java.util.List;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
+import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
@@ -96,21 +97,18 @@ public class TripService extends Service {
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        //minimum distance is in meters
-        int minimumDistance = sharedPref.getInt("minimum_distance", this.getResources().getInteger(R.integer.default_minimum_distance));
-
         //validate the trip based on distance and travel time
-        if(curtrip_.getDistance() >= minimumDistance) {
+        if(curtrip_.getDistance() >= SettingActivity.getMinimumDistance(this)) {
             Toast.makeText(this, "Saving trip in background!", Toast.LENGTH_LONG).show();
             curtrip_.setStatus(2);
-            curtrip_.setEndTime(System.currentTimeMillis());
-            DriveSenseApp.DBHelper().updateTrip(curtrip_);
-            TripUploadRequest.Start();
+
         } else {
             Toast.makeText(this, "Trip too short, not saved!", Toast.LENGTH_LONG).show();
-            DriveSenseApp.DBHelper().deleteTrip(curtrip_.uuid.toString());
+            curtrip_.setStatus(0);
         }
+        curtrip_.setEndTime(System.currentTimeMillis());
+        DriveSenseApp.DBHelper().updateTrip(curtrip_);
+        TripUploadRequest.Start();
 
         stopSelf();
     }
@@ -174,9 +172,8 @@ public class TripService extends Service {
             }
 
             long curtime = trace.time;
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-            int pauseTimeout = sharedPref.getInt("pause_timeout", context.getResources().getInteger(R.integer.default_pause_timeout)) * 1000;
-            if(curtime - lastSpeedNonzero > pauseTimeout) {
+
+            if(curtime - lastSpeedNonzero > SettingActivity.getPauseTimeout(context)) {
                 stoprecording = true;
             } else {
                 stoprecording = false;
