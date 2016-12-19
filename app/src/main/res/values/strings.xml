@@ -46,5 +46,6 @@
     <string name="connect_with_google">Connect With Google</string>
     <string name="connect_with_facebook">Connect with Facebook</string>
     <string name="pause_timeout_summary">Pause trip data collection after this many seconds stationary.</string>
+    <string name="end_trip_inactivity_summary">End trips after one hour of no detected motion.</string>
 
 </resources>

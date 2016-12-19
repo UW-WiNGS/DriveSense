@@ -2,7 +2,6 @@
 package wisc.drivesense.activity;
 
 import android.Manifest;
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,10 +23,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
@@ -42,16 +41,30 @@ public class MainActivity extends AppCompatActivity {
 
     //for display usage only, all calculation is conducted in TripService
 
-    private Trip curtrip_ = null;
-
-
     private static String TAG = "MainActivity";
     private MapViewFragment mapFragment;
     private TextView tvSpeed = null;
     private TextView tvMile = null;
     private TextView tvTilt = null;
     private Button btnStart = null;
+    private ServiceConnection mTripConnection = null;
+    private TripService boundTripService = null;
 
+    private class TripServiceConnection implements ServiceConnection {
+        private TripService.TripServiceBinder binder = null;
+
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            binder = ((TripService.TripServiceBinder) service);
+            boundTripService = binder.getService();
+            Log.d(TAG, "Bound to TripService");
+            updateGUI();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            binder = null;
+            boundTripService=null;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,67 +96,28 @@ public class MainActivity extends AppCompatActivity {
         addListenerOnButton();
     }
 
-    private class TripServiceConnection implements ServiceConnection {
-        private TripService.TripServiceBinder binder = null;
-
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            binder = ((TripService.TripServiceBinder) service);
-            curtrip_ = binder.getTrip();
-            Log.d(TAG, "Set _curtrip from binder");
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            binder = null;
-        }
-    }
-
-    private Intent mTripServiceIntent = null;
-    private ServiceConnection mTripConnection = null;
-
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onSTop");
-    }
-
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "onPuase");
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-        if (mTripConnection != null) {
-            unbindService(mTripConnection);
-        }
+        Log.d(TAG, "onPause");
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mTraceMessageReceiver);
+        unbindTripService();
     }
 
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        LocalBroadcastManager.getInstance(this).registerReceiver(mTraceMessageReceiver, new IntentFilter("sensor"));
+        bindTripService();
+    }
 
-
-        if (MainActivity.isServiceRunning(this, TripService.class) == true) {
+    private void updateGUI() {
+        if (boundTripService != null && boundTripService.getCurtrip() != null) {
             btnStart.setBackgroundResource(R.drawable.stop_button);
             btnStart.setText(R.string.stop_button);
-            //if the service is running, then start the connnection
-            mTripServiceIntent = new Intent(this, TripService.class);
-            mTripConnection = new TripServiceConnection();
-            bindService(mTripServiceIntent, mTripConnection, Context.BIND_AUTO_CREATE);
-            LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
         } else {
             btnStart.setBackgroundResource(R.drawable.start_button);
             btnStart.setText(R.string.start_button);
         }
-    }
-
-
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
-
-        if (SettingActivity.isAutoMode(MainActivity.this)) {
-            Toast.makeText(MainActivity.this, "Disable Auto Mode to Stop", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        mTripServiceIntent = new Intent(this, TripService.class);
-        stopService(mTripServiceIntent);
     }
 
     @Override
@@ -156,31 +130,23 @@ public class MainActivity extends AppCompatActivity {
 
     //get the selected dropdown list value
     public void addListenerOnButton() {
-
-
+        final Context context = this;
         //final TextView txtView= (TextView) findViewById(R.id.textspeed);
         btnStart.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 if (SettingActivity.isAutoMode(MainActivity.this)) {
                     Toast.makeText(MainActivity.this, "Disable Auto Mode in Settings", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Log.d(TAG, "start button clicked");
-                if (MainActivity.isServiceRunning(MainActivity.this, TripService.class) == false) {
-                    //Toast.makeText(MainActivity.this, "Service Started!", Toast.LENGTH_SHORT).show();
-                    startRunning();
-                    btnStart.setBackgroundResource(R.drawable.stop_button);
-                    btnStart.setText(R.string.stop_button);
-                } else {
-                    //Toast.makeText(MainActivity.this, "Service Stopped!", Toast.LENGTH_SHORT).show();
-                    stopRunning();
-                    btnStart.setBackgroundResource(R.drawable.start_button);
-                    btnStart.setText(R.string.start_button);
-
+                Log.d(TAG, "Start button clicked");
+                if (boundTripService != null && boundTripService.getCurtrip() == null) {
+                    startRecording();
+                } else if(boundTripService != null) {
+                    stopRecording();
                     showDriveRating();
                 }
+                updateGUI();
             }
         });
     }
@@ -225,20 +191,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private synchronized void startRunning() {
-        Log.d(TAG, "start running");
+    private void bindTripService() {
+        Intent tsi = new Intent(this, TripService.class);
+        mTripConnection = new TripServiceConnection();
+        bindService(tsi, mTripConnection, Context.BIND_AUTO_CREATE);
+    }
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("sensor"));
+    private void unbindTripService() {
+        Intent tsi = new Intent(this, TripService.class);
+        unbindService(mTripConnection);
+        mTripConnection = null;
+    }
 
+    private void startRecording() {
         if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
             displayMapFragment();
         }
-        mTripServiceIntent = new Intent(this, TripService.class);
-        mTripConnection = new TripServiceConnection();
-        if (MainActivity.isServiceRunning(this, TripService.class) == false) {
-            Log.d(TAG, "Start driving detection service!!!");
-            bindService(mTripServiceIntent, mTripConnection, Context.BIND_AUTO_CREATE);
-            startService(mTripServiceIntent);
+        if(boundTripService != null && boundTripService.getCurtrip() == null){
+            boundTripService.startRecordingNewTrip();
+        }
+    }
+
+    private void stopRecording() {
+
+        Log.d(TAG, "Stopping live data..");
+        hideMapFragment();
+        tvSpeed.setText(String.format("%.1f", 0.0));
+        tvMile.setText(String.format("%.2f", 0.00));
+        tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
+
+        if (boundTripService != null && boundTripService.getCurtrip() != null) {
+            boundTripService.stopRecordingTrip();
         }
     }
 
@@ -262,35 +245,6 @@ public class MainActivity extends AppCompatActivity {
         mapFragment = null;
     }
 
-    private synchronized void stopRunning() {
-
-        Log.d(TAG, "Stopping live data..");
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-        hideMapFragment();
-        tvSpeed.setText(String.format("%.1f", 0.0));
-        tvMile.setText(String.format("%.2f", 0.00));
-        tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
-
-        if (MainActivity.isServiceRunning(this, TripService.class) == true) {
-            Log.d(TAG, "Stop driving detection service!!!");
-            stopService(mTripServiceIntent);
-            unbindService(mTripConnection);
-            mTripConnection = null;
-            mTripServiceIntent = null;
-        }
-
-    }
-
-
-    private void displayWarning() {
-        Toast toast = new Toast(MainActivity.this);
-        ImageView view = new ImageView(MainActivity.this);
-        view.setImageResource(R.drawable.attention_512);
-
-        toast.setView(view);
-        toast.show();
-    }
-
     public void sendToRealTimeMapFragment(Trace gps) {
 //        mMapFrag.updateWTrace
     }
@@ -298,25 +252,25 @@ public class MainActivity extends AppCompatActivity {
     /**
      * where we get the sensor data
      */
+    private BroadcastReceiver mRecordingStatusChangedReciever = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateGUI();
+        }
+    };
 
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mTraceMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("trace");
             Trace trace = GsonSingleton.fromJson(message, TraceMessage.class).value;
-            if (curtrip_ != null) {
+            if (boundTripService != null && boundTripService.getCurtrip() != null) {
                 if (trace instanceof Trace.GPS) {
-                    Log.d(TAG, "Got message: " + message);
                     sendToRealTimeMapFragment(trace);
                     tvSpeed.setText(String.format("%.1f", ((Trace.GPS) trace).speed * Constants.kMeterPSToMilePH));
-                    tvMile.setText(String.format("%.2f", curtrip_.getDistance() * Constants.kMeterToMile));
-                    /*
-                    if(curtrip_.getSpeed() >= 5.0 && trace.values[2] < 0) {
-                        displayWarning();
-                    }
-                    */
+                    tvMile.setText(String.format("%.2f", boundTripService.getCurtrip().getDistance() * Constants.kMeterToMile));
                 } else if (trace instanceof Trace.Accel) {
-                    tvTilt.setText(String.format("%.0f", curtrip_.getTilt()) + (char) 0x00B0);
+                    tvTilt.setText(String.format("%.0f", boundTripService.getCurtrip().getTilt()) + (char) 0x00B0);
                 }
             }
         }
@@ -324,9 +278,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void showDriveRating() {
-        Intent intent = new Intent(this, MapActivity.class);
-        intent.putExtra("uuid", curtrip_.uuid.toString());
-        startActivity(intent);
+        Trip lastTrip = DriveSenseApp.DBHelper().getLastTrip();
+        if(lastTrip != null && lastTrip.getStatus() == 2) {
+            Intent intent = new Intent(this, MapActivity.class);
+            intent.putExtra("uuid", lastTrip.uuid.toString());
+            startActivity(intent);
+        } else {
+            Log.d(TAG, "Tried to show a trip, but it was null or deleted.");
+        }
     }
 
     public void showSettings() {
@@ -338,18 +297,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, HistoryActivity.class);
         startActivity(intent);
     }
-
-
-    public static boolean isServiceRunning(Context context, Class running) {
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (running.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }
 
 

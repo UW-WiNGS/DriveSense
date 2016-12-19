@@ -32,6 +32,11 @@ public class SettingActivity extends AppCompatActivity {
         return sharedPref.getBoolean("pref_auto", false);
     }
 
+    public static boolean getEndTripAuto(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("end_trip_inactivity", context.getResources().getBoolean(R.bool.default_end_trip_inactivity));
+    }
+
     public static boolean showMapWhileDriving(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean("showMap", false);

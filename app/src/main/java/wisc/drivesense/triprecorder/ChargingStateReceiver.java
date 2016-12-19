@@ -26,19 +26,15 @@ public class ChargingStateReceiver extends BroadcastReceiver {
         switch (action) {
             case Intent.ACTION_POWER_CONNECTED:
                 // Do something when power connected
-                Log.d(TAG, "plugged");
-                if (MainActivity.isServiceRunning(context, TripService.class) == false) {
-                    Log.d(TAG, "Start driving detection service!!!");
-                    context.startService(mDrivingDetectionIntent);
-                }
+                Log.d(TAG, "Plugged. Start driving detection service!!!");
+                context.startService(mDrivingDetectionIntent);
+                //TODO: bind to service and start recording
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
                 // Do something when power disconnected
-                Log.d(TAG, "unplugged");
-                if (MainActivity.isServiceRunning(context, TripService.class) == true) {
-                    Log.d(TAG, "Stop driving detection service!!!");
-                    context.stopService(mDrivingDetectionIntent);
-                }
+                Log.d(TAG, "Unplugged. Stop driving detection service!!!");
+                //TODO: bind and stop recording
+                context.stopService(mDrivingDetectionIntent);
                 break;
         }
     }

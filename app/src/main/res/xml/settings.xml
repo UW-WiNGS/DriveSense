@@ -8,10 +8,15 @@
         android:defaultValue="false" />
 
 
-    <SwitchPreference
-        android:defaultValue="false"
-        android:title="Show map and location while driving"
-        android:key="showMap" />
+    <CheckBoxPreference
+        android:defaultValue="@bool/default_end_trip_inactivity"
+        android:title="Automatically end trips."
+        android:key="end_trip_inactivity"
+        android:summary="@string/end_trip_inactivity_summary" />
+    <!--<SwitchPreference-->
+        <!--android:defaultValue="false"-->
+        <!--android:title="Show map and location while driving"-->
+        <!--android:key="showMap" />-->
 
     <EditTextPreference
         android:defaultValue="@integer/default_pause_timeout"
@@ -26,13 +31,13 @@
         android:inputType="number"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="Minimum trip Distance"
+        android:title="Minimum Trip Distance"
         android:key="minimum_distance"
         android:summary="Minimum trip length in meters for it to be saved." />
     <EditTextPreference
         android:key="pre_id"
-        android:summary="Your device id"
-        android:title="Your device id"
+        android:summary="Your Device ID"
+        android:title="Your Device ID"
         />
 
 
