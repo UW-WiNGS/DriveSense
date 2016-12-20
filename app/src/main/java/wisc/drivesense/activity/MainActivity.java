@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             binder = ((TripService.TripServiceBinder) service);
             boundTripService = binder.getService();
             Log.d(TAG, "Bound to TripService");
-            updateGUI();
+            updateButton();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         Log.d(TAG, "onPause");
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mTraceMessageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRecordingStatusChangedReciever);
         unbindTripService();
     }
 
@@ -107,10 +108,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d(TAG, "onResume");
         LocalBroadcastManager.getInstance(this).registerReceiver(mTraceMessageReceiver, new IntentFilter("sensor"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter("end_trip"));
         bindTripService();
     }
 
-    private void updateGUI() {
+    private void updateButton() {
         if (boundTripService != null && boundTripService.getCurtrip() != null) {
             btnStart.setBackgroundResource(R.drawable.stop_button);
             btnStart.setText(R.string.stop_button);
@@ -146,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     stopRecording();
                     showDriveRating();
                 }
-                updateGUI();
+                updateButton();
             }
         });
     }
@@ -255,7 +257,8 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mRecordingStatusChangedReciever = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateGUI();
+            Log.d(TAG, "Received broadcast saying that trip has ended");
+            updateButton();
         }
     };
 

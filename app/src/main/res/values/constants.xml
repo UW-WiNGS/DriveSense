@@ -3,4 +3,5 @@
     <integer name="default_pause_timeout">120</integer>
     <integer name="default_minimum_distance">500</integer>
     <bool name="default_end_trip_inactivity">false</bool>
+    <integer name="end_trip_inactivity_timeout">3600</integer>
 </resources>

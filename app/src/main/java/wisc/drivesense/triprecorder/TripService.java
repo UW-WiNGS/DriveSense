@@ -34,6 +34,8 @@ public class TripService extends Service {
     private final long SEND_INTERVAL = 1000;
     private DriveSenseToken user = null;
     private Trip curtrip_ = null;
+    private long lastSpeedNonzero = 0;
+    private boolean stoprecording = false;
 
     public Binder _binder = new TripServiceBinder();
 
@@ -88,6 +90,9 @@ public class TripService extends Service {
     public void startRecordingNewTrip() {
         curtrip_ = new Trip();
         DriveSenseApp.DBHelper().insertTrip(curtrip_);
+        lastSpeedNonzero = 0;
+        stoprecording = false;
+
         Log.d(TAG, "Start driving detection service. UUID: "+curtrip_.uuid);
         startSensors();
 
@@ -114,6 +119,10 @@ public class TripService extends Service {
             TripUploadRequest.Start();
             curtrip_ = null;
         }
+
+        //broadcast a notification that the trip is ending
+        Intent intent = new Intent("end_trip");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         stopSelf();
     }
@@ -147,9 +156,6 @@ public class TripService extends Service {
     /**
      * where we get the sensor data
      */
-    private long lastGPS = 0;
-    private long lastSpeedNonzero = 0;
-    private boolean stoprecording = false;
     private BroadcastReceiver mSensorMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -160,9 +166,8 @@ public class TripService extends Service {
             if(trace == null) return;
             if(curtrip_ == null) return;
 
-            if(lastSpeedNonzero == 0 && lastGPS == 0) {
+            if(lastSpeedNonzero == 0) {
                 lastSpeedNonzero = trace.time;
-                lastGPS = trace.time;
             }
 
             if(trace instanceof Trace.GPS) {
@@ -172,7 +177,6 @@ public class TripService extends Service {
                 if(gps.speed != 0.0) {
                     lastSpeedNonzero = gps.time;
                 }
-                lastGPS = gps.time;
 
                 curtrip_.addGPS(gps);
             }
@@ -190,7 +194,7 @@ public class TripService extends Service {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } else if ((curtime - lastSpeedNonzero > 60*60*1000) && endTripAuto){
+            } else if ((curtime - lastSpeedNonzero > context.getResources().getInteger(R.integer.end_trip_inactivity_timeout)*1000) && endTripAuto){
                 //send trip ended broadcast
                 stopRecordingTrip();
             }
