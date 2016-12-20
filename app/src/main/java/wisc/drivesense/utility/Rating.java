@@ -1,5 +1,7 @@
 package wisc.drivesense.utility;
 
+import android.util.Log;
+
 import java.io.Serializable;
 
 import wisc.drivesense.triprecorder.RealTimeTiltCalculation;
@@ -41,13 +43,14 @@ public class Rating implements Serializable {
             return 0;
         }
         double time = trace.time - lastTrace_.time;
+        if(time == 0) {
+            return 0;
+        }
         double curSpeed = Trip.distance(lastTrace_, trace)/(time/1000.0);
         if(lastSpeed_ == -1.0) {
             lastSpeed_ = curSpeed;
             return 0;
-        } /*else if(curSpeed == 0.0) {
-            return 0;
-        } */else {
+        } else {
             counter_++;
         }
         double a = (curSpeed - lastSpeed_)/(time/1000.0);

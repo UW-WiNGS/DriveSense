@@ -63,8 +63,6 @@ public class SensorService extends Service implements SensorEventListener, Locat
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "location update speed:" + String.valueOf(location.getSpeed()));
-        // TODO Auto-generated method stub
         if (location != null) {
             Trace.GPS trace = new Trace.GPS();
             trace.time = System.currentTimeMillis();
@@ -73,8 +71,9 @@ public class SensorService extends Service implements SensorEventListener, Locat
             trace.speed = location.getSpeed();
             trace.alt = (float) location.getAltitude();
 
+            Trace.Trip tt = rating.getRating(trace);
             //TODO: Maybe generate ratings separately
-            sendTrace(rating.getRating(trace));
+            sendTrace(tt);
         }
 
     }
