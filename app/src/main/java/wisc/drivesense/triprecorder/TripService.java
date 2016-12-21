@@ -42,6 +42,8 @@ public class TripService extends Service {
     private final String TAG = "Trip Service";
 
     private final int ONGOING_NOTIFICATION_ID = 1;
+    public static final String START_IMMEDIATELY = "startImmediately";
+    public static final String TRIP_STATUS_CHANGE = "tripStatusChange";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -68,7 +70,11 @@ public class TripService extends Service {
             } else {
                 Log.d(TAG, "TripService was restarted, but no unfinalized trip was found");
             }
+        } else if (intent.getBooleanExtra(START_IMMEDIATELY, false)) {
+            startRecordingNewTrip();
         }
+
+        registerReceiver(mPowerDisconnectedReceiver, new IntentFilter(Intent.ACTION_POWER_DISCONNECTED));
 
         return START_STICKY;
     }
@@ -99,6 +105,10 @@ public class TripService extends Service {
         Intent tsi = new Intent(this, TripService.class);
         startService(tsi);
         startForeground();
+
+        Intent intent = new Intent(TRIP_STATUS_CHANGE);
+        intent.putExtra("recording", true);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     public void stopRecordingTrip() {
@@ -121,7 +131,8 @@ public class TripService extends Service {
         }
 
         //broadcast a notification that the trip is ending
-        Intent intent = new Intent("end_trip");
+        Intent intent = new Intent(TRIP_STATUS_CHANGE);
+        intent.putExtra("recording", false);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         stopSelf();
@@ -145,6 +156,11 @@ public class TripService extends Service {
 
     public void onDestroy() {
         Log.d(TAG, "onDestroy for tripservice called");
+        try {
+            unregisterReceiver(mPowerDisconnectedReceiver);
+        } catch (IllegalArgumentException e) {
+            
+        }
         stopSensors();
     }
 
@@ -152,6 +168,14 @@ public class TripService extends Service {
         return curtrip_;
     }
 
+    //the service is started by the ChargingStateReceiver, but needs to stop itself when power disconnnected
+    private BroadcastReceiver mPowerDisconnectedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(curtrip_ != null)
+                stopRecordingTrip();
+        }
+    };
 
     /**
      * where we get the sensor data

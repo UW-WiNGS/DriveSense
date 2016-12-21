@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.d(TAG, "onResume");
         LocalBroadcastManager.getInstance(this).registerReceiver(mTraceMessageReceiver, new IntentFilter("sensor"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter("end_trip"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter(TripService.TRIP_STATUS_CHANGE));
         bindTripService();
     }
 
@@ -137,10 +137,6 @@ public class MainActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (SettingActivity.isAutoMode(MainActivity.this)) {
-                    Toast.makeText(MainActivity.this, "Disable Auto Mode in Settings", Toast.LENGTH_SHORT).show();
-                    return;
-                }
                 Log.d(TAG, "Start button clicked");
                 if (boundTripService != null && boundTripService.getCurtrip() == null) {
                     startRecording();
@@ -257,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver mRecordingStatusChangedReciever = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Received broadcast saying that trip has ended");
+            Log.d(TAG, "Received broadcast saying that trip recording status changed.");
             updateButton();
         }
     };

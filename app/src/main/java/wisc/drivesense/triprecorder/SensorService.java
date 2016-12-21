@@ -72,10 +72,10 @@ public class SensorService extends Service implements SensorEventListener, Locat
             trace.alt = (float) location.getAltitude();
 
             Trace.Trip tt = rating.getRating(trace);
+            Log.d(TAG, location.getAccuracy()+"");
             //TODO: Maybe generate ratings separately
             sendTrace(tt);
         }
-
     }
 
     @Override

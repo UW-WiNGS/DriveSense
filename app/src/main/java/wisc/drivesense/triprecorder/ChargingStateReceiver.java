@@ -1,8 +1,11 @@
 package wisc.drivesense.triprecorder;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import wisc.drivesense.activity.MainActivity;
@@ -12,8 +15,11 @@ public class ChargingStateReceiver extends BroadcastReceiver {
 
     private static String TAG = "ChargingStateReceiver";
     private static Intent mDrivingDetectionIntent = null;
+    private TripService boundTripService = null;
+
+
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
 
         if(SettingActivity.isAutoMode(context) == false) {
             return;
@@ -22,20 +28,15 @@ public class ChargingStateReceiver extends BroadcastReceiver {
         //check charging status, and start sensor service automatically
         String action = intent.getAction();
         mDrivingDetectionIntent = new Intent(context, TripService.class);
+        mDrivingDetectionIntent.putExtra(TripService.START_IMMEDIATELY, true);
 
         switch (action) {
             case Intent.ACTION_POWER_CONNECTED:
                 // Do something when power connected
                 Log.d(TAG, "Plugged. Start driving detection service!!!");
                 context.startService(mDrivingDetectionIntent);
-                //TODO: bind to service and start recording
                 break;
-            case Intent.ACTION_POWER_DISCONNECTED:
-                // Do something when power disconnected
-                Log.d(TAG, "Unplugged. Stop driving detection service!!!");
-                //TODO: bind and stop recording
-                context.stopService(mDrivingDetectionIntent);
-                break;
+            //power disconnect is received in the TripService
         }
     }
 
