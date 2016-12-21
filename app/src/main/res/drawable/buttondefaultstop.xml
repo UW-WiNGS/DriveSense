@@ -3,15 +3,17 @@
     <corners
         android:radius="100dp"
         />
-    <gradient
-        android:gradientRadius="200"
-        android:centerX="50%"
-        android:centerY="75%"
-        android:centerColor="#bc333c"
-        android:startColor="#ff868c"
-        android:endColor="#86262c"
-        android:type="radial"
-        />
+    <!--<gradient-->
+        <!--android:gradientRadius="200"-->
+        <!--android:centerX="50%"-->
+        <!--android:centerY="75%"-->
+        <!--android:centerColor="#bc333c"-->
+        <!--android:startColor="#ff868c"-->
+        <!--android:endColor="#86262c"-->
+        <!--android:type="radial"-->
+        <!--/>-->
+    <solid
+        android:color="#a32518"></solid>
     <padding
         android:left="0dp"
         android:top="0dp"
@@ -24,6 +26,6 @@
         />
     <stroke
         android:width="3dp"
-        android:color="#e15658"
+        android:color="#fb5a49"
         />
 </shape>

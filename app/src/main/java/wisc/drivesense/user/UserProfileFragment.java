@@ -27,7 +27,8 @@ public class UserProfileFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         DriveSenseToken user = DriveSenseApp.DBHelper().getCurrentUser();
-        ((TextView)view.findViewById(R.id.username)).setText("Logged in as: " + user.firstname + " " + user.lastname);
+        ((TextView)view.findViewById(R.id.username)).setText("Logged in as: " + user.email);
+        ((TextView)view.findViewById(R.id.name)).setText(user.firstname + " " + user.lastname);
 
         view.findViewById(R.id.sign_out_button).setOnClickListener(new View.OnClickListener() {
             @Override

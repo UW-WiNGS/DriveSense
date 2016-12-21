@@ -1,24 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?><!--http://colorschemedesigner.com/csd-3.5/#2T61TmKvyw0w0-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1.0"
-    android:keepScreenOn="true"
     android:background="@drawable/main_activity_background"
+    android:keepScreenOn="true"
+    android:weightSum="1.0"
     tools:context=".activity.MainActivity">
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/maintoolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/toolBarColor"
-        android:elevation="4dp"
-        android:theme="@style/ToolbarTheme"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
     <FrameLayout
         android:id="@+id/container"
@@ -29,89 +17,95 @@
         android:layout_alignParentEnd="true"
         android:layout_above="@+id/btnstart" />
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/maintoolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/toolBarColor"
+        android:elevation="4dp"
+        android:theme="@style/ToolbarTheme" />
+
 
     <Button
-        android:text="@string/start_button"
-        android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:background="@drawable/start_button"
-        android:shadowColor="#000000"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="6"
         android:id="@+id/btnstart"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginLeft="16dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginRight="150dp"
-        />
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@drawable/start_button"
+        android:text="@string/start_button"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp" />
 
     <TextView
+        android:id="@+id/milesdriven"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:layout_above="@+id/miles"
         android:text="0.00"
         android:textColor="#FFFFFF"
-        android:textSize="60sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/milesdriven"
-        android:layout_above="@+id/miles"
-        android:layout_alignLeft="@+id/miles"/>
-
+        android:textSize="60sp" />
 
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="miles"
-        android:textSize="40sp"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        style="@style/textStyle"
         android:id="@+id/miles"
+        style="@style/textStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="26dp"
-        android:layout_marginBottom="26dp" />
+        android:layout_alignLeft="@+id/milesdriven"
+        android:layout_marginBottom="26dp"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:text="miles"
+        android:textSize="30sp" />
 
 
-
-
-    <TextView
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="0.0"
-        style="@style/textStyle"
-        android:textSize="80sp"
-        android:textAlignment="center"
-        android:id="@+id/textspeed"
         android:layout_above="@+id/btnstart"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/textspeed"
-        android:layout_alignBottom="@id/textspeed"
-        android:text="mph"
-        android:textSize="20sp"
-        android:id="@+id/textView"
-        style="@style/textStyle"
-        />
+        android:layout_below="@id/maintoolbar">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0&#xb0;"
-        style="@style/textStyle"
-        android:textSize="50sp"
-        android:textAlignment="center"
-        android:id="@+id/texttilt"
-        android:layout_above="@+id/textspeed"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp"
-        android:visibility="gone"
-        />
+        <TextView
+            android:id="@+id/textspeed"
+            style="@style/textStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:text="0.0"
+            android:textAlignment="center"
+            android:textSize="80sp" />
 
+        <TextView
+            android:id="@+id/textView"
+            style="@style/textStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/textspeed"
+            android:layout_toRightOf="@id/textspeed"
+            android:text="mph"
+            android:textSize="30sp" />
+        <TextView
+            android:id="@+id/texttilt"
+            style="@style/textStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/textspeed"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:text="0&#xb0;"
+            android:textAlignment="center"
+            android:textSize="50sp"
+            android:visibility="gone" />
+    </RelativeLayout>
 </RelativeLayout>
