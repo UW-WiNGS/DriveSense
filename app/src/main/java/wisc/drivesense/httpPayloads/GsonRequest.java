@@ -64,7 +64,6 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
 
     @Override
     protected void deliverResponse(T response) {
-        Log.d(TAG, response.toString());
         this.onResponse(response);
     }
 

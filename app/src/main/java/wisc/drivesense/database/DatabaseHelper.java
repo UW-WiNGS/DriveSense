@@ -86,7 +86,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void insertTrip(Trip trip) {
         Gson gson = new Gson();
-        Log.d(TAG, "insertTrip" + gson.toJson(trip));
         ContentValues values = new ContentValues();
         values.put("uuid", trip.uuid.toString());
         values.put("starttime", trip.getStartTime());
@@ -106,28 +105,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.insert(TABLE_TRIP, null, values);
     }
 
-    public long insertSensorData(String tripUUID, Trace trace) throws Exception {
+    public long insertSensorData(String tripUUID, TraceMessage tm) throws Exception {
         String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
-        Cursor cursor = wdb.rawQuery(selectQuery, null);
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         if(cursor.getCount() == 0)
             throw new Exception();
         int tripID = cursor.getInt(0);
         ContentValues values = new ContentValues();
-        TraceMessage tm = new TraceMessage(trace);
         values.put("synced", false);
         values.put("value", GsonSingleton.toJson(tm));
         values.put("type", tm.type);
         values.put("tripid", tripID);
         long rowid = wdb.insert(TABLE_TRACE, null, values);
-
-        selectQuery = "SELECT id FROM " + TABLE_TRACE + " WHERE rowid = " + rowid + ";";
-        cursor = wdb.rawQuery(selectQuery, null);
-        cursor.moveToFirst();
-        if(cursor.getCount() == 0) {
-            throw new Exception();
-        }
-        return cursor.getLong(0);
+        //rowid is an alias for a column declared as INTEGER PRIMARY KEY, which is id in this case
+        //and that is what we want to return
+        return rowid;
 
     }
 
@@ -214,7 +207,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public Trip getLastTrip() {
         List<Trip> unfinished = loadTrips();
-        Log.d(TAG, unfinished.toString());
         if(unfinished.size() < 1) {
             return null;
         } else {

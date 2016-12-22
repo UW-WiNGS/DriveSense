@@ -52,7 +52,7 @@ public abstract class CompressedGSONRequest<T> extends GsonRequest<T> {
             e.printStackTrace();
         }
         byte[] output = os.toByteArray();
-        Log.d(TAG, "Compressed payload from "+jsonBytes.length + " bytes to "+output.length+" bytes, a compression ratio of "+output.length/(float)jsonBytes.length);
+        //Log.d(TAG, "Compressed payload from "+jsonBytes.length + " bytes to "+output.length+" bytes, a compression ratio of "+output.length/(float)jsonBytes.length);
         return output;
     }
 }

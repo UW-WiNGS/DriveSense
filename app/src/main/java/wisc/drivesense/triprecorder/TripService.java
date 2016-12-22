@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
@@ -29,13 +31,12 @@ import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
 
 public class TripService extends Service {
-    ArrayList<TraceMessage> unsentMessages = new ArrayList<TraceMessage>();
-    private long lastSent = 0;
     private final long SEND_INTERVAL = 1000;
     private DriveSenseToken user = null;
     private Trip curtrip_ = null;
     private long lastSpeedNonzero = 0;
     private boolean stoprecording = false;
+    private TraceStorageWorker tsw;
 
     public Binder _binder = new TripServiceBinder();
 
@@ -100,6 +101,12 @@ public class TripService extends Service {
         stoprecording = false;
 
         Log.d(TAG, "Start driving detection service. UUID: "+curtrip_.uuid);
+        Toast.makeText(this, "Trip recording service starting in background.", Toast.LENGTH_SHORT).show();
+        user = DriveSenseApp.DBHelper().getCurrentUser();
+
+        tsw = new TraceStorageWorker(curtrip_.uuid.toString());
+        tsw.start();
+
         startSensors();
 
         Intent tsi = new Intent(this, TripService.class);
@@ -114,6 +121,12 @@ public class TripService extends Service {
     public void stopRecordingTrip() {
         stopForeground(true);
         stopSensors();
+        tsw.stopRunning();
+        try {
+            tsw.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if(curtrip_ != null) {
             //validate the trip based on distance and travel time
             if(curtrip_.getDistance() >= SettingActivity.getMinimumDistance(this)) {
@@ -143,9 +156,6 @@ public class TripService extends Service {
         Intent senI = new Intent(this, SensorService.class);
         startService(senI);
 
-        Toast.makeText(this, "Trip recording service starting in background.", Toast.LENGTH_SHORT).show();
-        user = DriveSenseApp.DBHelper().getCurrentUser();
-
         LocalBroadcastManager.getInstance(this).registerReceiver(mSensorMessageReceiver, new IntentFilter("sensor"));
     }
     private void stopSensors() {
@@ -159,7 +169,7 @@ public class TripService extends Service {
         try {
             unregisterReceiver(mPowerDisconnectedReceiver);
         } catch (IllegalArgumentException e) {
-            
+
         }
         stopSensors();
     }
@@ -212,9 +222,9 @@ public class TripService extends Service {
             boolean endTripAuto= SettingActivity.getEndTripAuto(context);
             if(!stoprecording) {
                 try {
-                    message.rowid = DriveSenseApp.DBHelper().insertSensorData(curtrip_.uuid.toString(), trace);
-                    DriveSenseApp.DBHelper().updateTrip(curtrip_);
-                    unsentMessages.add(message);
+                    tsw.addTrace(message, curtrip_.getDistance());
+                    //update trip async?
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -222,20 +232,6 @@ public class TripService extends Service {
                 //send trip ended broadcast
                 stopRecordingTrip();
             }
-
-            if(!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
-                Log.d(TAG, "Uploading "+unsentMessages.size()+" traces.");
-                TripPayload payload = new TripPayload();
-                payload.guid = curtrip_.uuid.toString();
-                payload.traces = unsentMessages;
-                payload.distance = curtrip_.getDistance();
-                lastSent = System.currentTimeMillis();
-                unsentMessages = new ArrayList<>();
-
-                TripUploadRequest.Start(payload);
-            }
-
-
 
             if(curtime - lastSpeedNonzero > SettingActivity.getPauseTimeout(context)) {
                 stoprecording = true;
@@ -245,4 +241,59 @@ public class TripService extends Service {
         }
 
     };
+
+    private class TraceStorageWorker extends Thread {
+        private static final String TAG = "TraceStorageWorker";
+        private LinkedBlockingQueue<TraceMessage> traces;
+        private String tripUUID;
+        private long lastSent = 0;
+        private volatile double curDistance;
+        ArrayList<TraceMessage> unsentMessages = new ArrayList<TraceMessage>();
+        private boolean running = true;
+        public TraceStorageWorker(String tripUUID) {
+            traces = new LinkedBlockingQueue();
+            this.tripUUID = tripUUID;
+        }
+        public void addTrace(TraceMessage tm, double curDistance) {
+            try {
+                //traces.put is thread safe
+                traces.put(tm);
+                this.curDistance = curDistance;
+            } catch (InterruptedException e) { e.printStackTrace(); }
+        }
+        public void stopRunning() {
+            running = false;
+            this.interrupt();
+        }
+        public void run() {
+            while (running || traces.size()!=0) {
+                TraceMessage tm = null;
+                try {
+                    tm = traces.take();
+                    tm.rowid = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tm);
+                    unsentMessages.add(tm);
+                } catch (InterruptedException e) {
+                    Log.d(TAG, "Worker thread was interrupted");
+                } catch (Exception e) {
+                    Log.e(TAG, "Something went wrong inserting a row of sensor data");
+                    e.printStackTrace();
+                }
+
+                if (!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
+                    //DriveSenseApp.DBHelper().updateTrip(curtrip_);
+                    Log.d(TAG, "Worker queue size: "+traces.size());
+                    Log.d(TAG, "Uploading " + unsentMessages.size() + " traces.");
+                    TripPayload payload = new TripPayload();
+                    payload.guid = tripUUID;
+                    payload.traces = unsentMessages;
+                    payload.distance = curDistance;
+                    lastSent = System.currentTimeMillis();
+                    unsentMessages = new ArrayList<>();
+
+                    TripUploadRequest.Start(payload);
+                }
+            }
+            Log.d(TAG, "Worker thread done running");
+        }
+    }
 }
