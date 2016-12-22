@@ -267,11 +267,15 @@ public class TripService extends Service {
         }
         public void run() {
             while (running || traces.size()!=0) {
-                TraceMessage tm = null;
                 try {
-                    tm = traces.take();
-                    tm.rowid = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tm);
-                    unsentMessages.add(tm);
+                    ArrayList<TraceMessage> tmList = new ArrayList<>(traces.size());
+                    traces.drainTo(tmList);
+                    long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList);
+                    for (int i = 0; i < tmList.size(); i++) {
+                        TraceMessage tm = tmList.get(i);
+                        tm.rowid = rowids[i];
+                        unsentMessages.add(tm);
+                    }
                 } catch (InterruptedException e) {
                     Log.d(TAG, "Worker thread was interrupted");
                 } catch (Exception e) {
@@ -280,7 +284,8 @@ public class TripService extends Service {
                 }
 
                 if (!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
-                    //DriveSenseApp.DBHelper().updateTrip(curtrip_);
+                    //TODO: I don't think this is thread safe
+                    DriveSenseApp.DBHelper().updateTrip(curtrip_);
                     Log.d(TAG, "Worker queue size: "+traces.size());
                     Log.d(TAG, "Uploading " + unsentMessages.size() + " traces.");
                     TripPayload payload = new TripPayload();

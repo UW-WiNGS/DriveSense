@@ -105,23 +105,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.insert(TABLE_TRIP, null, values);
     }
 
-    public long insertSensorData(String tripUUID, TraceMessage tm) throws Exception {
+    /**
+     * Insert a list of TraceMessages in a bulk transaction to improve efficiency considerably
+     * @param tripUUID UUID of the trip.
+     * @param tmList Trace messages to insert
+     * @return List of the row IDs of the inserted objects in the order they were given
+     * @throws Exception
+     */
+    public long[] insertSensorData(String tripUUID, ArrayList<TraceMessage> tmList) throws Exception {
+        long[] insertIDs = new long[tmList.size()];
         String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         cursor.moveToFirst();
         if(cursor.getCount() == 0)
             throw new Exception();
         int tripID = cursor.getInt(0);
-        ContentValues values = new ContentValues();
-        values.put("synced", false);
-        values.put("value", GsonSingleton.toJson(tm));
-        values.put("type", tm.type);
-        values.put("tripid", tripID);
-        long rowid = wdb.insert(TABLE_TRACE, null, values);
-        //rowid is an alias for a column declared as INTEGER PRIMARY KEY, which is id in this case
-        //and that is what we want to return
-        return rowid;
-
+        cursor.close();
+        wdb.beginTransaction();
+        for (int i = 0; i < tmList.size(); i++) {
+            TraceMessage tm = tmList.get(i);
+            ContentValues values = new ContentValues();
+            values.put("synced", false);
+            values.put("value", GsonSingleton.toJson(tm));
+            values.put("type", tm.type);
+            values.put("tripid", tripID);
+            long rowid = wdb.insert(TABLE_TRACE, null, values);
+            //rowid is an alias for a column declared as INTEGER PRIMARY KEY, which is id in this case
+            //and that is what we want to return
+            insertIDs[i] = rowid;
+        }
+        wdb.setTransactionSuccessful();
+        wdb.endTransaction();
+        return insertIDs;
     }
 
     public void markTracesSynced(Long[] traceids) {
@@ -162,7 +177,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"' LIMIT "+limit;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
-        return cursorToTraces(cursor);
+        List<TraceMessage> res = cursorToTraces(cursor);
+        cursor.close();
+        return res;
     }
     /**
      * Get the gps points of a trip, which is identified by the start time (the name of the database)
@@ -177,6 +194,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         for (TraceMessage tm : cursorToTraces(cursor)) {
             res.add((Trace.Trip)tm.value);
         }
+        cursor.close();
         return res;
     }
 
@@ -267,6 +285,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Trip trip = constructTripByCursor(cursor);
             trips.add(trip);
         } while (cursor.moveToNext());
+        cursor.close();
         return trips;
     }
 
@@ -282,6 +301,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.moveToFirst();
         user = DriveSenseToken.InstantiateFromJWT(cursor.getString(3));
+        cursor.close();
         return user;
     }
 
