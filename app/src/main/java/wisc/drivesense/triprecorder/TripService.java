@@ -66,8 +66,8 @@ public class TripService extends Service {
                 curtrip_.setGPSPoints(points_);
                 Log.d(TAG, "Trip distance: "+curtrip_.getDistance() + " gps length: "+curtrip_.getGPSPoints().size());
                 Log.d(TAG, "Restart driving detection service after being killed by android. UUID: "+curtrip_.uuid);
-                startSensors();
-                startForeground();
+
+                startRecording();
             } else {
                 Log.d(TAG, "TripService was restarted, but no unfinalized trip was found");
             }
@@ -94,9 +94,20 @@ public class TripService extends Service {
         startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 
+    /**
+     * Initialize tripservice with a new curtrip_ and start recording sensor data.
+     */
     public void startRecordingNewTrip() {
         curtrip_ = new Trip();
         DriveSenseApp.DBHelper().insertTrip(curtrip_);
+
+        startRecording();
+    }
+
+    /**
+     * Start recording (assumes curtrip_ has already been initialized
+     */
+    private void startRecording() {
         lastSpeedNonzero = 0;
         stoprecording = false;
 
@@ -249,7 +260,7 @@ public class TripService extends Service {
         private long lastSent = 0;
         private volatile double curDistance;
         ArrayList<TraceMessage> unsentMessages = new ArrayList<TraceMessage>();
-        private boolean running = true;
+        private volatile boolean running = true;
         public TraceStorageWorker(String tripUUID) {
             traces = new LinkedBlockingQueue();
             this.tripUUID = tripUUID;
@@ -264,6 +275,9 @@ public class TripService extends Service {
         public void stopRunning() {
             running = false;
             this.interrupt();
+        }
+        public boolean isRunning() {
+            return running;
         }
         public void run() {
             while (running || traces.size()!=0) {
