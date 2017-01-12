@@ -58,6 +58,11 @@ public class OldTrace {
 
 
     public static OldTrace fromTrace(Trace trace) {
+
+        if(trace instanceof Trace.GPS) {
+            return null;
+        }
+
         int d = ((Trace.Accel) trace).values().length;
         OldTrace oldTrace = new OldTrace(d);
         oldTrace.time = trace.time;
@@ -76,6 +81,8 @@ public class OldTrace {
             for(int i = 0; i < d; ++i) {
                 oldTrace.values[i] = ((Trace.Accel) trace).values()[i];
             }
+        } else {
+            return null;
         }
         return oldTrace;
     }

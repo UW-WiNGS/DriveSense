@@ -37,6 +37,9 @@ public class RealTimeSensorProcessing {
     public void processTrace(Trace input) {
 
         OldTrace trace = OldTrace.fromTrace(input);
+		if(trace == null) {
+			return;
+		}
 
         String type = trace.type;
         if(type.equals(OldTrace.ACCELEROMETER)) {
