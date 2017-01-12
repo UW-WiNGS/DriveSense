@@ -50,6 +50,21 @@ public abstract class Trace implements Serializable {
             matrix = v;
         }
     }
+
+    public static class EventTrace extends Trace {
+        public long endtime;
+        public String event_type;
+        //the sum of the angle change
+        public double steering_sum_ = 0.0;
+        // the sum of the absolute angle change, in lane change, the steering_sum may be zero, but not the absolute steering
+        public double steering_abs_sum_ = 0.0;
+
+
+        public static String TURN = "turn";
+        public static String LANECHANGE = "lane_change";
+        public static String CURVING = "curving";
+    }
+
     @Expose
     public long time;
     public Trace copyTrace() {
@@ -64,5 +79,6 @@ public abstract class Trace implements Serializable {
     public String toJson() {
         return GsonSingleton.toJson(this);
     }
+
 
 }

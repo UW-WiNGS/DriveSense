@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.EventTrace;
 import wisc.drivesense.utility.OldTrace;
 import wisc.drivesense.utility.Trace;
 
@@ -37,7 +36,7 @@ public class RealTimeSensorProcessing {
     public void processTrace(Trace input) {
 
         OldTrace trace = OldTrace.fromTrace(input);
-		if(trace == null) {
+		if(trace == null || trace.type == null) {
 			return;
 		}
 
@@ -85,8 +84,8 @@ public class RealTimeSensorProcessing {
 	}
 	
 	private double kTurnThreshold = 0.05;
-	public List<EventTrace> events = new ArrayList<EventTrace>();
-	private EventTrace event_turn = null;
+	public List<Trace.EventTrace> events = new ArrayList<Trace.EventTrace>();
+	private Trace.EventTrace event_turn = null;
 	private OldTrace pastGyro = null;
 	private int steering_counter = 0;
 
@@ -124,8 +123,8 @@ public class RealTimeSensorProcessing {
 					turnabsolutesum += Math.abs(steers);
 				}
 				
-				event_turn = new EventTrace();
-				event_turn.start_ = window_gyroscope.get(0).time;
+				event_turn = new Trace.EventTrace();
+				event_turn.time = window_gyroscope.get(0).time;
 				event_turn.steering_sum_ = turnsum;
 				event_turn.steering_abs_sum_ = turnabsolutesum;
 				
@@ -136,19 +135,19 @@ public class RealTimeSensorProcessing {
 			}
 		} else {
 			if(event_turn != null) {
-				event_turn.end_ = trace.time;
+				event_turn.endtime = trace.time;
 				
 				double degree = Math.abs(Math.toDegrees(event_turn.steering_sum_));
 				//Log.d(TAG, degree, Math.toDegrees(event_turn.steering_abs_sum_));
 				if(degree >= 60.0){
-					event_turn.type_ = EventTrace.TURN;
+					event_turn.event_type = Trace.EventTrace.TURN;
 					events.add(event_turn);
 				} else if(degree >= 20) {
-					event_turn.type_ = EventTrace.CURVING;
+					event_turn.event_type = Trace.EventTrace.CURVING;
 					events.add(event_turn);
 				} else if(degree <= 10) {
 					if(Math.toDegrees(event_turn.steering_abs_sum_) >= 20) {
-						event_turn.type_ = EventTrace.LANECHANGE;
+						event_turn.event_type = Trace.EventTrace.LANECHANGE;
 						events.add(event_turn);
 					}
 				} else {

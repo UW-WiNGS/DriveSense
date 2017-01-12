@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -25,7 +24,6 @@ import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.utility.EventTrace;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -120,6 +118,8 @@ public class TripService extends Service {
         tsw = new TraceStorageWorker(curtrip_.uuid.toString());
         tsw.start();
 
+        sensorProcessing = new RealTimeSensorProcessing();
+
         startSensors();
 
         Intent tsi = new Intent(this, TripService.class);
@@ -129,8 +129,6 @@ public class TripService extends Service {
         Intent intent = new Intent(TRIP_STATUS_CHANGE);
         intent.putExtra("recording", true);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
-        sensorProcessing = new RealTimeSensorProcessing();
     }
 
     public void stopRecordingTrip() {
@@ -164,6 +162,7 @@ public class TripService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         sensorProcessing = null;
+
         stopSelf();
     }
 
@@ -216,14 +215,9 @@ public class TripService extends Service {
             if(trace == null) return;
             if(curtrip_ == null) return;
 
-            //when the trace is rotation type, its length should be 9
-            if(trace instanceof Trace.Rotation) {
-                Log.e(TAG, trace.toJson());
-            }
-
             if(sensorProcessing != null) {
                 sensorProcessing.processTrace(trace);
-                List<EventTrace> events = sensorProcessing.events;
+                List<Trace.EventTrace> events = sensorProcessing.events;
              }
 
             if(lastSpeedNonzero == 0) {
