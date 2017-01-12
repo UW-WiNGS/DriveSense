@@ -36,11 +36,10 @@ public class TripAdapter extends ArrayAdapter<Trip> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.trip_item, parent, false);
         }
         // Lookup view for data population
-        TextView tvStart = (TextView) convertView.findViewById(R.id.start);
-        TextView tvEnd = (TextView) convertView.findViewById(R.id.end);
+        TextView tvStartDate = (TextView) convertView.findViewById(R.id.start_date);
+        TextView tvStartTime = (TextView) convertView.findViewById(R.id.start_time);
         TextView tvDuration = (TextView) convertView.findViewById(R.id.duration);
         TextView tvMiles = (TextView) convertView.findViewById(R.id.miles);
-        TextView tvScore = (TextView) convertView.findViewById(R.id.score);
 
         long start = trip.getStartTime();
         Date starting = new Date(start);
@@ -48,17 +47,17 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         long end = trip.getEndTime();
         Date ending = new Date(end);
 
-        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yy HH:mm");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMMM d");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
 
         double duration = trip.getDuration();
         double miles = trip.getDistance() * Constants.kMeterToMile;
         double score = trip.getScore();
 
-        tvStart.setText(format.format(starting));
-        tvEnd.setText(format.format(ending));
+        tvStartDate.setText(dateFormat.format(starting));
+        tvStartTime.setText(timeFormat.format(starting));
         tvDuration.setText(String.format("%.2f", duration/(1000*60.0)) + " mins");
         tvMiles.setText(String.format("%.2f", miles) + " miles");
-        tvScore.setText(String.format("%.1f", score));
 
 
         return convertView;
