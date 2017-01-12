@@ -79,11 +79,10 @@ public class OldTrace {
                 oldTrace.values[i] = ((Trace.Gyro) trace).values()[i];
             }
         } else if(trace instanceof Trace.Rotation) {
-            Log.d("OldTrace", trace.toJson());
-            oldTrace.type = OldTrace.ROTATION_MATRIX;
             d = 9;
             oldTrace = new OldTrace(d);
             oldTrace.time = trace.time;
+            oldTrace.type = OldTrace.ROTATION_MATRIX;
             for(int i = 0; i < d; ++i) {
                 oldTrace.values[i] = ((Trace.Rotation) trace).values()[i];
             }
