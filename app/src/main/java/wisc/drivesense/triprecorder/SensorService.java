@@ -150,7 +150,7 @@ public class SensorService extends Service implements SensorEventListener, Locat
 
             Trace.Rotation trace = new Trace.Rotation();
             trace.time = time;
-            trace.values(event.values);
+            trace.values(mR);
             sendTrace(trace);
         }
     }
