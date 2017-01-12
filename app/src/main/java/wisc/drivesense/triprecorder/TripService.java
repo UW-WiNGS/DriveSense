@@ -25,7 +25,6 @@ import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.utility.EventTrace;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -38,7 +37,6 @@ public class TripService extends Service {
     private long lastSpeedNonzero = 0;
     private boolean stoprecording = false;
     private TraceStorageWorker tsw;
-    public RealTimeSensorProcessing sensorProcessing = null;
 
     public Binder _binder = new TripServiceBinder();
 
@@ -129,8 +127,6 @@ public class TripService extends Service {
         Intent intent = new Intent(TRIP_STATUS_CHANGE);
         intent.putExtra("recording", true);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
-        sensorProcessing = new RealTimeSensorProcessing();
     }
 
     public void stopRecordingTrip() {
@@ -163,7 +159,6 @@ public class TripService extends Service {
         intent.putExtra("recording", false);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        sensorProcessing = null;
         stopSelf();
     }
 
@@ -215,16 +210,6 @@ public class TripService extends Service {
 
             if(trace == null) return;
             if(curtrip_ == null) return;
-
-            //when the trace is rotation type, its length should be 9
-            if(trace instanceof Trace.Rotation) {
-                Log.e(TAG, trace.toJson());
-            }
-
-            if(sensorProcessing != null) {
-                sensorProcessing.processTrace(trace);
-                List<EventTrace> events = sensorProcessing.events;
-             }
 
             if(lastSpeedNonzero == 0) {
                 lastSpeedNonzero = trace.time;
