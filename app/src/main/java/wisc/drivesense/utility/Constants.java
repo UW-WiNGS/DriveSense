@@ -33,7 +33,7 @@ public class Constants {
     public static final String kFacebookSignInURL = kDomain + "/auth/facebook";
 
     public static final double kExponentialMovingAverageAlpha = 0.4;//0.3;
-
+    public static final double kOrientationChangeVarianceThreshold = 1.2;
 
 
 }
