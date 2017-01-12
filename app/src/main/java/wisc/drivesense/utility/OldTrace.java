@@ -1,5 +1,7 @@
 package wisc.drivesense.utility;
 
+import android.util.Log;
+
 /**
  * Created by lkang on 1/11/17.
  */
@@ -63,7 +65,7 @@ public class OldTrace {
             return null;
         }
 
-        int d = ((Trace.Accel) trace).values().length;
+        int d = 3;
         OldTrace oldTrace = new OldTrace(d);
         oldTrace.time = trace.time;
         if(trace instanceof Trace.Accel) {
@@ -74,12 +76,16 @@ public class OldTrace {
         } else if (trace instanceof Trace.Gyro) {
             oldTrace.type = OldTrace.GYROSCOPE;
             for(int i = 0; i < d; ++i) {
-                oldTrace.values[i] = ((Trace.Accel) trace).values()[i];
+                oldTrace.values[i] = ((Trace.Gyro) trace).values()[i];
             }
         } else if(trace instanceof Trace.Rotation) {
+            Log.d("OldTrace", trace.toJson());
             oldTrace.type = OldTrace.ROTATION_MATRIX;
+            d = 9;
+            oldTrace = new OldTrace(d);
+            oldTrace.time = trace.time;
             for(int i = 0; i < d; ++i) {
-                oldTrace.values[i] = ((Trace.Accel) trace).values()[i];
+                oldTrace.values[i] = ((Trace.Rotation) trace).values()[i];
             }
         } else {
             return null;

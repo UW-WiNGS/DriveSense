@@ -216,6 +216,11 @@ public class TripService extends Service {
             if(trace == null) return;
             if(curtrip_ == null) return;
 
+            //when the trace is rotation type, its length should be 9
+            if(trace instanceof Trace.Rotation) {
+                Log.e(TAG, trace.toJson());
+            }
+
             if(sensorProcessing != null) {
                 sensorProcessing.processTrace(trace);
                 List<EventTrace> events = sensorProcessing.events;
