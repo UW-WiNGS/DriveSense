@@ -34,6 +34,7 @@ public class Constants {
 
     public static final double kExponentialMovingAverageAlpha = 0.4;//0.3;
 
+    public static final int kNumberOfMarkerDisplay = 20;
 
 
 }
