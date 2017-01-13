@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mTraceMessageReceiver, new IntentFilter("sensor"));
         LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter(TripService.TRIP_STATUS_CHANGE));
         bindTripService();
+        updateButton();
     }
 
     private void updateButton() {
@@ -119,6 +120,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             btnStart.setBackgroundResource(R.drawable.start_button);
             btnStart.setText(R.string.start_button);
+        }
+
+        if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
+            displayMapFragment();
+        } else {
+            hideMapFragment();
         }
     }
 
@@ -202,9 +209,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
-            displayMapFragment();
-        }
+
         if(boundTripService != null && boundTripService.getCurtrip() == null){
             boundTripService.startRecordingNewTrip();
         }
@@ -225,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayMapFragment() {
         findViewById(R.id.textspeed).setVisibility(View.GONE);
+        findViewById(R.id.speedUnitView).setVisibility(View.GONE);
         mapFragment = MapViewFragment.newInstance();
         getSupportFragmentManager()
                 .beginTransaction()
@@ -235,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
     private void hideMapFragment() {
         if(mapFragment != null) {
             findViewById(R.id.textspeed).setVisibility(View.VISIBLE);
+            findViewById(R.id.speedUnitView).setVisibility(View.VISIBLE);
             getSupportFragmentManager()
                     .beginTransaction()
                     .remove(mapFragment)
@@ -244,7 +251,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendToRealTimeMapFragment(Trace gps) {
-//        mMapFrag.updateWTrace
+        if(gps != null && mapFragment != null) {
+            mapFragment.addMarker(gps);
+        }
     }
     //
     /**

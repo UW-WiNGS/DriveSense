@@ -87,7 +87,7 @@
             android:textSize="80sp" />
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/speedUnitView"
             style="@style/textStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

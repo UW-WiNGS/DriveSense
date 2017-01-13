@@ -146,7 +146,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     }
 
 
-    private List<BitmapDescriptor> producePoints(int [] colors) {
+    public static List<BitmapDescriptor> producePoints(int [] colors) {
         List<BitmapDescriptor> res = new ArrayList<BitmapDescriptor>();
         int width = 10, height = 10;
 

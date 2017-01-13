@@ -13,10 +13,11 @@
         android:title="Automatically end trips."
         android:key="end_trip_inactivity"
         android:summary="@string/end_trip_inactivity_summary" />
-    <!--<SwitchPreference-->
-        <!--android:defaultValue="false"-->
-        <!--android:title="Show map and location while driving"-->
-        <!--android:key="showMap" />-->
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:title="Show map and location while driving"
+        android:key="showMap" />
 
     <EditTextPreference
         android:defaultValue="@integer/default_pause_timeout"
