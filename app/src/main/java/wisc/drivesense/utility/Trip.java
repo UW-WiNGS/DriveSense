@@ -20,7 +20,7 @@ public class Trip implements Serializable {
     private double speed_ = 0.0;
     private double score_ = 10.0;
     private int status_ = 1;
-    private List<Trace.Trip> gps_;
+    private List<Trace.GPS> gps_;
     private double tilt_;
 
     //private Rating rating = null;
@@ -40,7 +40,7 @@ public class Trip implements Serializable {
     }
 
     private Trip(long time) {
-        gps_ = new ArrayList<Trace.Trip>();
+        gps_ = new ArrayList<Trace.GPS>();
         this.startTime_ = time;
         this.endTime_ = time;
     }
@@ -88,8 +88,8 @@ public class Trip implements Serializable {
      */
     public void addGPS(Trace.GPS trace) {
 
-        if(trace instanceof Trace.Trip)
-            gps_.add((Trace.Trip)trace);
+        if(trace instanceof Trace.GPS)
+            gps_.add((Trace.GPS)trace);
         speed_ = trace.speed;
         this.endTime_ = trace.time;
 
@@ -102,7 +102,7 @@ public class Trip implements Serializable {
     }
 
 
-    public void setGPSPoints(List<Trace.Trip> gps) {
+    public void setGPSPoints(List<Trace.GPS> gps) {
         int sz = gps.size();
         if(sz == 0) {
             return;
@@ -110,7 +110,7 @@ public class Trip implements Serializable {
         this.gps_ = gps;
     }
 
-    public List<Trace.Trip> getGPSPoints() {
+    public List<Trace.GPS> getGPSPoints() {
         return gps_;
     }
 

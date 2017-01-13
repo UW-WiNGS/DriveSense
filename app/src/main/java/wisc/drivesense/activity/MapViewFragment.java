@@ -19,9 +19,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import wisc.drivesense.R;
+import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
@@ -29,6 +31,8 @@ public class MapViewFragment extends Fragment {
     private MapView mMapView;
     private GoogleMap googleMap;
     private List<BitmapDescriptor> bitmapDescriptors;
+    private List<Marker> markers = new LinkedList<Marker>();
+    private int [] colors = {Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED};
 
     public static MapViewFragment newInstance() {
         return new MapViewFragment();
@@ -48,7 +52,7 @@ public class MapViewFragment extends Fragment {
             e.printStackTrace();
         }
 
-        int [] colors = {Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED};
+
         bitmapDescriptors = MapActivity.producePoints(colors);
 
         mMapView.getMapAsync(new OnMapReadyCallback() {
@@ -65,8 +69,8 @@ public class MapViewFragment extends Fragment {
                 //googleMap.addMarker(new MarkerOptions().position(madison).title("Marker Title").snippet("Marker Description"));
 
                 // For zooming automatically to the location of the marker
-                CameraPosition cameraPosition = new CameraPosition.Builder().target(madison).zoom(12).build();
-                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                //CameraPosition cameraPosition = new CameraPosition.Builder().target(madison).zoom(12).build();
+                //googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             }
         });
         return rootView;
@@ -86,12 +90,31 @@ public class MapViewFragment extends Fragment {
         }
 
         BitmapDescriptor bitmapDescriptor = bitmapDescriptors.get(0);
+        bitmapDescriptor = bitmapDescriptors.get(Math.min((int) (curgps.speed / 5.0), colors.length - 1));
         MarkerOptions markerOptions = new MarkerOptions().position(curgps.toLatLng()).icon(bitmapDescriptor);
-        googleMap.addMarker(markerOptions);
+        Marker curMarker = googleMap.addMarker(markerOptions);
+        markers.add(curMarker);
+        if(markers.size() > Constants.kNumberOfMarkerDisplay) {
+            markers.remove(0).remove();
+        }
 
         // For zooming automatically to the location of the marker
         CameraPosition cameraPosition = new CameraPosition.Builder().target(curgps.toLatLng()).zoom(16).build();
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
+    }
+
+    public void addNMarkers(Trip trip) {
+        if(trip == null) {
+            return;
+        }
+        List<Trace.GPS> gps = trip.getGPSPoints();
+        int sz = gps.size();
+        if(sz > Constants.kNumberOfMarkerDisplay * 2) {
+            gps = gps.subList(sz - Constants.kNumberOfMarkerDisplay * 2, sz);
+        }
+        for(int i = 0; i < gps.size(); ++i) {
+            addMarker(gps.get(i));
+        }
     }
 }

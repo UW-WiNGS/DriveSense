@@ -111,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter(TripService.TRIP_STATUS_CHANGE));
         bindTripService();
         updateButton();
+        if(SettingActivity.showMapWhileDriving(MainActivity.this)) {
+            mapFragment.addNMarkers(boundTripService.getCurtrip());
+        }
     }
 
     private void updateButton() {
