@@ -15,7 +15,6 @@ public class ChargingStateReceiver extends BroadcastReceiver {
 
     private static String TAG = "ChargingStateReceiver";
     private static Intent mDrivingDetectionIntent = null;
-    private TripService boundTripService = null;
 
 
     @Override
