@@ -8,16 +8,26 @@
         android:defaultValue="false" />
 
 
+    <ListPreference
+        android:defaultValue="mi/h"
+        android:title="Units"
+        android:entries="@array/unit_types"
+        android:entryValues="@array/unit_types"
+        android:key="unit_type" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:title="Show Map While Driving"
+        android:key="showMap" />
     <CheckBoxPreference
         android:defaultValue="@bool/default_end_trip_inactivity"
-        android:title="Automatically end trips."
+        android:title="Automatically End Trips"
         android:key="end_trip_inactivity"
         android:summary="@string/end_trip_inactivity_summary" />
 
     <CheckBoxPreference
-        android:defaultValue="false"
-        android:title="Show map and location while driving"
-        android:key="showMap" />
+        android:defaultValue="@bool/default_pause_stationary"
+        android:title="Pause When Stationary"
+        android:key="pause_when_stationary" />
 
     <EditTextPreference
         android:defaultValue="@integer/default_pause_timeout"
@@ -26,7 +36,8 @@
         android:singleLine="true"
         android:title="Pause Timeout"
         android:key="pause_timeout"
-        android:summary="@string/pause_timeout_summary" />
+        android:summary="@string/pause_timeout_summary"
+        android:dependency="pause_when_stationary" />
     <EditTextPreference
         android:defaultValue="@integer/default_minimum_distance"
         android:inputType="number"
