@@ -34,18 +34,24 @@ public class MapViewFragment extends Fragment {
     private List<Marker> markers = new LinkedList<Marker>();
     private int [] colors = {Color.GREEN, Color.BLUE, Color.YELLOW, Color.RED};
 
+    private View rootView;
+
     public static MapViewFragment newInstance() {
         return new MapViewFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_map, container, false);
 
+        prepareMap(inflater, container, savedInstanceState);
+        return rootView;
+    }
+
+    public void prepareMap(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.fragment_map, container, false);
         mMapView = (MapView) rootView.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
         mMapView.onResume(); // needed to get the map to display immediately
-
         try {
             MapsInitializer.initialize(getActivity().getApplicationContext());
         } catch (Exception e) {
@@ -73,7 +79,6 @@ public class MapViewFragment extends Fragment {
                 //googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             }
         });
-        return rootView;
     }
 
     private Trace.GPS lastgps = null;
@@ -89,8 +94,7 @@ public class MapViewFragment extends Fragment {
             }
         }
 
-        BitmapDescriptor bitmapDescriptor = bitmapDescriptors.get(0);
-        bitmapDescriptor = bitmapDescriptors.get(Math.min((int) (curgps.speed / 5.0), colors.length - 1));
+        BitmapDescriptor bitmapDescriptor = bitmapDescriptors.get(Math.min((int) (curgps.speed / 5.0), colors.length - 1));
         MarkerOptions markerOptions = new MarkerOptions().position(curgps.toLatLng()).icon(bitmapDescriptor);
         Marker curMarker = googleMap.addMarker(markerOptions);
         markers.add(curMarker);
@@ -105,10 +109,14 @@ public class MapViewFragment extends Fragment {
     }
 
     public void addNMarkers(Trip trip) {
+        return;
+        /*
         if(trip == null) {
             return;
         }
-        List<Trace.GPS> gps = trip.getGPSPoints();
+        bitmapDescriptors = MapActivity.producePoints(colors);
+
+        List<Trace.Trip> gps = trip.getGPSPoints();
         int sz = gps.size();
         if(sz > Constants.kNumberOfMarkerDisplay * 2) {
             gps = gps.subList(sz - Constants.kNumberOfMarkerDisplay * 2, sz);
@@ -116,5 +124,6 @@ public class MapViewFragment extends Fragment {
         for(int i = 0; i < gps.size(); ++i) {
             addMarker(gps.get(i));
         }
+        */
     }
 }

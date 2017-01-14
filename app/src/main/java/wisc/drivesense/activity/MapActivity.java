@@ -211,9 +211,19 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         List<BitmapDescriptor> bitmapDescriptors = producePoints(colors);
 
         // plot the route on the google map
-        int rate = sz/1200 + 1;
-        for (int i = 0; i < sz; i+=rate) {
+        double distance = trip_.getDistance();
+        double step = distance/1000;
+        Trace.Trip lastgps = null;
+        for (int i = 0; i < sz; i++) {
             Trace.Trip point = points_.get(i);
+            if(lastgps == null) {
+                lastgps = point;
+            } else {
+                if(Trip.distance((Trace.GPS)lastgps, (Trace.GPS)point) < step) {
+                    continue;
+                }
+                lastgps = point;
+            }
 
             BitmapDescriptor bitmapDescriptor;
 
