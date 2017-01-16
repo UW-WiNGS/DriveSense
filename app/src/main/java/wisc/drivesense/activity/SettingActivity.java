@@ -52,11 +52,6 @@ public class SettingActivity extends AppCompatActivity {
         return sharedPref.getBoolean("pause_when_stationary", context.getResources().getBoolean(R.bool.default_pause_stationary));
     }
 
-    public static int getPauseTimeout(Context context) {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        return Integer.parseInt(sharedPref.getString("pause_timeout", ""+context.getResources().getInteger(R.integer.default_pause_timeout))) * 1000;
-    }
-
     public static int getMinimumDistance(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         //minimum distance is in meters

@@ -35,16 +35,8 @@
         <CheckBoxPreference
             android:defaultValue="@bool/default_pause_stationary"
             android:title="Pause When Stationary"
-            android:key="pause_when_stationary" />
-        <EditTextPreference
-            android:defaultValue="@integer/default_pause_timeout"
-            android:inputType="number"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
-            android:title="Pause Timeout"
-            android:key="pause_timeout"
-            android:summary="@string/pause_timeout_summary"
-            android:dependency="pause_when_stationary" />
+            android:key="pause_when_stationary"
+            android:summary="@string/pause_summary"/>
         <EditTextPreference
             android:defaultValue="@integer/default_minimum_distance"
             android:inputType="number"
