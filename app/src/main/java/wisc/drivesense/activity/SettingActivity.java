@@ -27,9 +27,14 @@ public class SettingActivity extends AppCompatActivity {
 
     }
 
-    public static boolean isAutoMode(Context context) {
+    public static boolean getAutoStart(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPref.getBoolean("pref_auto", false);
+        return sharedPref.getBoolean("pref_auto_start", context.getResources().getBoolean(R.bool.auto_start_default));
+    }
+
+    public static boolean getAutoStop(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("pref_auto_stop", context.getResources().getBoolean(R.bool.auto_stop_default));
     }
 
     public static boolean getEndTripAuto(Context context) {

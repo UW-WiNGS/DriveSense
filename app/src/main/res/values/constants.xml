@@ -5,4 +5,7 @@
     <integer name="default_minimum_distance">500</integer>
     <bool name="default_end_trip_inactivity">false</bool>
     <integer name="end_trip_inactivity_timeout">3600</integer>
+
+    <bool name="auto_start_default">false</bool>
+    <bool name="auto_stop_default">false</bool>
 </resources>

@@ -193,7 +193,7 @@ public class TripService extends Service {
     private BroadcastReceiver mPowerDisconnectedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(curtrip_ != null && SettingActivity.isAutoMode(context) == true)
+            if(curtrip_ != null && SettingActivity.getAutoStop(context) == true)
                 stopRecordingTrip();
         }
     };

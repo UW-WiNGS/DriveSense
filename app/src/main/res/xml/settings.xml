@@ -1,56 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <CheckBoxPreference
-        android:key="pref_auto"
-        android:title="Auto Mode"
-        android:summary="Trip recording automatically starts upon power connection and stops upon disconnection"
-        android:defaultValue="false" />
+    <PreferenceCategory android:title="Auto Mode">
+        <CheckBoxPreference
+            android:key="pref_auto_start"
+            android:title="Auto Start"
+            android:summary="Trip recording automatically starts upon power connection"
+            android:defaultValue="@bool/auto_start_default" />
+        <CheckBoxPreference
+            android:key="pref_auto_stop"
+            android:title="Auto Stop"
+            android:summary="Automatically stop upon power disconnection"
+            android:defaultValue="@bool/auto_stop_default" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="App Settings">
+        <ListPreference
+            android:defaultValue="mi/h"
+            android:title="Units"
+            android:entries="@array/unit_types"
+            android:entryValues="@array/unit_types"
+            android:key="unit_type" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:title="Show Map While Driving"
+            android:key="showMap" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Recording Settings">
 
+        <CheckBoxPreference
+            android:defaultValue="@bool/default_end_trip_inactivity"
+            android:title="Automatically End Trips"
+            android:key="end_trip_inactivity"
+            android:summary="@string/end_trip_inactivity_summary" />
+        <CheckBoxPreference
+            android:defaultValue="@bool/default_pause_stationary"
+            android:title="Pause When Stationary"
+            android:key="pause_when_stationary" />
+        <EditTextPreference
+            android:defaultValue="@integer/default_pause_timeout"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Pause Timeout"
+            android:key="pause_timeout"
+            android:summary="@string/pause_timeout_summary"
+            android:dependency="pause_when_stationary" />
+        <EditTextPreference
+            android:defaultValue="@integer/default_minimum_distance"
+            android:inputType="number"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Minimum Trip Distance"
+            android:key="minimum_distance"
+            android:summary="Minimum trip length in meters for it to be saved." />
+    </PreferenceCategory>
 
-    <ListPreference
-        android:defaultValue="mi/h"
-        android:title="Units"
-        android:entries="@array/unit_types"
-        android:entryValues="@array/unit_types"
-        android:key="unit_type" />
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:title="Show Map While Driving"
-        android:key="showMap" />
-    <CheckBoxPreference
-        android:defaultValue="@bool/default_end_trip_inactivity"
-        android:title="Automatically End Trips"
-        android:key="end_trip_inactivity"
-        android:summary="@string/end_trip_inactivity_summary" />
-
-    <CheckBoxPreference
-        android:defaultValue="@bool/default_pause_stationary"
-        android:title="Pause When Stationary"
-        android:key="pause_when_stationary" />
-
-    <EditTextPreference
-        android:defaultValue="@integer/default_pause_timeout"
-        android:inputType="number"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="Pause Timeout"
-        android:key="pause_timeout"
-        android:summary="@string/pause_timeout_summary"
-        android:dependency="pause_when_stationary" />
-    <EditTextPreference
-        android:defaultValue="@integer/default_minimum_distance"
-        android:inputType="number"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="Minimum Trip Distance"
-        android:key="minimum_distance"
-        android:summary="Minimum trip length in meters for it to be saved." />
     <EditTextPreference
         android:key="pre_id"
         android:summary="Your Device ID"
         android:title="Your Device ID"
         />
-
-
 </PreferenceScreen>

@@ -20,7 +20,7 @@ public class ChargingStateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
 
-        if(SettingActivity.isAutoMode(context) == false) {
+        if(SettingActivity.getAutoStart(context) == false) {
             return;
         }
 
