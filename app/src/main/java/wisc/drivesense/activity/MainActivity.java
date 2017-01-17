@@ -219,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
     private void stopRecording() {
 
         Log.d(TAG, "Stopping live data..");
-        hideMapFragment();
         tvSpeed.setText(String.format("%.1f", 0.0));
         tvMile.setText(String.format("%.2f", 0.00));
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
@@ -252,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
         }
         mapFragment = null;
+        displayingMap = false;
     }
 
     public void sendToRealTimeMapFragment(Trace gps) {
