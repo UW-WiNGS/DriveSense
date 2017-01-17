@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnStart = null;
     private ServiceConnection mTripConnection = null;
     private TripService boundTripService = null;
+    private boolean displayingMap = false;
 
     private class TripServiceConnection implements ServiceConnection {
         private TripService.TripServiceBinder binder = null;
@@ -111,9 +112,6 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter(TripService.TRIP_STATUS_CHANGE));
         bindTripService();
         updateButton();
-        if(SettingActivity.showMapWhileDriving(MainActivity.this) && boundTripService != null) {
-            mapFragment.addNMarkers(boundTripService.getCurtrip());
-        }
     }
 
     private void updateButton() {
@@ -234,11 +232,14 @@ public class MainActivity extends AppCompatActivity {
     private void displayMapFragment() {
         findViewById(R.id.textspeed).setVisibility(View.GONE);
         findViewById(R.id.speedUnitView).setVisibility(View.GONE);
-        mapFragment = MapViewFragment.newInstance();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.container, mapFragment)
-                .commit();
+        if(!displayingMap) {
+            mapFragment = MapViewFragment.newInstance();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container, mapFragment)
+                    .commit();
+            displayingMap = true;
+        }
     }
 
     private void hideMapFragment() {

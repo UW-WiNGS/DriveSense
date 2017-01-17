@@ -108,9 +108,9 @@ public class MapViewFragment extends Fragment {
 
     }
 
+    /*
     public void addNMarkers(Trip trip) {
-        return;
-        /*
+
         if(trip == null) {
             return;
         }
@@ -124,6 +124,6 @@ public class MapViewFragment extends Fragment {
         for(int i = 0; i < gps.size(); ++i) {
             addMarker(gps.get(i));
         }
-        */
     }
+    */
 }
