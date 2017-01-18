@@ -243,9 +243,9 @@ public class TripService extends Service {
                 //send trip ended broadcast
                 stopRecordingTrip();
             }
-
-            if(curtime - lastSpeedNonzero > context.getResources().getInteger(R.integer.default_pause_timeout)
-                    && SettingActivity.getPauseWhenStationary(context)) {
+            boolean pauseRecordingPref = SettingActivity.getPauseWhenStationary(context);
+            if(((curtime - lastSpeedNonzero) > context.getResources().getInteger(R.integer.default_pause_timeout) * 1000)
+                    && pauseRecordingPref) {
                 stoprecording = true;
             } else {
                 stoprecording = false;
