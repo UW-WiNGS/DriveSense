@@ -26,6 +26,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
@@ -46,10 +50,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvSpeed = null;
     private TextView tvMile = null;
     private TextView tvTilt = null;
+    private TextView tvElapsed = null;
     private Button btnStart = null;
     private ServiceConnection mTripConnection = null;
     private TripService boundTripService = null;
     private boolean displayingMap = false;
+    private TimerTask elapsedTimeUpdater;
 
     private class TripServiceConnection implements ServiceConnection {
         private TripService.TripServiceBinder binder = null;
@@ -59,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
             boundTripService = binder.getService();
             Log.d(TAG, "Bound to TripService");
             updateButton();
+            if(binder.getService().getCurtrip()!= null) {
+                startElapsedTime();
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -86,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         tvMile = (TextView) findViewById(R.id.milesdriven);
         tvTilt = (TextView) findViewById(R.id.texttilt);
         btnStart = (Button) findViewById(R.id.btnstart);
+        tvElapsed = (TextView) findViewById(R.id.elapsedtime);
 
         //tvTilt.setVisibility(View.VISIBLE);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
@@ -100,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
+        stopElapsedTime();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mTraceMessageReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRecordingStatusChangedReciever);
         unbindTripService();
@@ -127,6 +138,38 @@ public class MainActivity extends AppCompatActivity {
             displayMapFragment();
         } else {
             hideMapFragment();
+        }
+    }
+
+    private void startElapsedTime() {
+        if(elapsedTimeUpdater == null) {
+            Timer t = new Timer();
+            elapsedTimeUpdater = new TimerTask() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateElapsedTime();
+                        }
+                    });
+                }
+            };
+            t.scheduleAtFixedRate(elapsedTimeUpdater, 0, 1000);
+        }
+    }
+    private void stopElapsedTime() {
+        if(elapsedTimeUpdater != null) {
+            elapsedTimeUpdater.cancel();
+            elapsedTimeUpdater = null;
+        }
+    }
+    private void updateElapsedTime () {
+        if (boundTripService != null && boundTripService.getCurtrip() != null) {
+            long duration = System.currentTimeMillis() - boundTripService.getCurtrip().getStartTime();
+            final long min = TimeUnit.MILLISECONDS.toMinutes(duration);
+            final long sec = TimeUnit.MILLISECONDS.toSeconds(duration - TimeUnit.MINUTES.toMillis(min));
+            tvElapsed.setText(String.format("%d:%02d", min, sec));
         }
     }
 
@@ -213,19 +256,21 @@ public class MainActivity extends AppCompatActivity {
 
         if(boundTripService != null && boundTripService.getCurtrip() == null){
             boundTripService.startRecordingNewTrip();
+            startElapsedTime();
         }
     }
 
     private void stopRecording() {
+        if (boundTripService != null && boundTripService.getCurtrip() != null) {
+            boundTripService.stopRecordingTrip();
+            stopElapsedTime();
+        }
 
         Log.d(TAG, "Stopping live data..");
         tvSpeed.setText(String.format("%.1f", 0.0));
         tvMile.setText(String.format("%.2f", 0.00));
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
-
-        if (boundTripService != null && boundTripService.getCurtrip() != null) {
-            boundTripService.stopRecordingTrip();
-        }
+        tvElapsed.setText("0:00");
     }
 
     private void displayMapFragment() {

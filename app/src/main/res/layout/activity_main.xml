@@ -43,7 +43,16 @@
         android:text="@string/start_button"
         android:textColor="#FFFFFF"
         android:textSize="32sp" />
-
+    <TextView
+        android:id="@+id/elapsedtime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:layout_above="@+id/milesdriven"
+        android:text="0:00"
+        android:textColor="#FFFFFF"
+        android:textSize="35sp" />
     <TextView
         android:id="@+id/milesdriven"
         android:layout_width="wrap_content"
@@ -53,7 +62,7 @@
         android:layout_above="@+id/miles"
         android:text="0.00"
         android:textColor="#FFFFFF"
-        android:textSize="60sp" />
+        android:textSize="55sp" />
 
 
     <TextView
