@@ -10,19 +10,22 @@ import android.widget.TextView;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import wisc.drivesense.R;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
+import wisc.drivesense.utility.Units;
 
 public class TripAdapter extends ArrayAdapter<Trip> {
     List<Trip> trips_ = null;
+    private boolean metricUnits;
 
     private final String TAG = "TripAdapter";
     public TripAdapter(Context context, List<Trip> trips) {
         super(context, 0, trips);
         trips_ = trips;
-
+        metricUnits = SettingActivity.getMetricUnits(context);
 
     }
 
@@ -39,7 +42,7 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         TextView tvStartDate = (TextView) convertView.findViewById(R.id.start_date);
         TextView tvStartTime = (TextView) convertView.findViewById(R.id.start_time);
         TextView tvDuration = (TextView) convertView.findViewById(R.id.duration);
-        TextView tvMiles = (TextView) convertView.findViewById(R.id.distance_driven_unit);
+        TextView tvDistance = (TextView) convertView.findViewById(R.id.distance_driven_unit);
 
         long start = trip.getStartTime();
         Date starting = new Date(start);
@@ -51,13 +54,13 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
 
         double duration = trip.getDuration();
-        double miles = trip.getDistance() * Constants.kMeterToMile;
         double score = trip.getScore();
 
         tvStartDate.setText(dateFormat.format(starting));
         tvStartTime.setText(timeFormat.format(starting));
         tvDuration.setText(String.format("%.2f", duration/(1000*60.0)) + " mins");
-        tvMiles.setText(String.format("%.2f", miles) + " miles");
+        Units.userFacingDouble distance = Units.largeDistance(trip.getDistance(), metricUnits);
+        tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
 
 
         return convertView;
