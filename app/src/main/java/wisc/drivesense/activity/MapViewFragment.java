@@ -108,6 +108,12 @@ public class MapViewFragment extends Fragment {
 
     }
 
+    public void clearMarkers() {
+        while(markers.size() > 0) {
+            markers.remove(0).remove();
+        }
+    }
+
     /*
     public void addNMarkers(Trip trip) {
 

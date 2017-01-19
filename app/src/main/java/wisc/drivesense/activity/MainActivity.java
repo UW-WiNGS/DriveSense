@@ -257,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         if(boundTripService != null && boundTripService.getCurtrip() == null){
             boundTripService.startRecordingNewTrip();
             startElapsedTime();
+            mapFragment.clearMarkers();
         }
     }
 
