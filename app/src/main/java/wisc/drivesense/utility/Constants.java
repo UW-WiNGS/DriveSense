@@ -12,11 +12,12 @@ public class Constants {
 
     public static final double kMeterToMile = 0.000621371;
     public static final double kMeterPSToMilePH = 2.23694;
+    public static final double kMeterPSToKMPH = 60/1000.0;
     public static final double kKmPHToMPH = 0.621371;
     public static final double kKmPHToMeterPS = 0.277778;
     public static final double kFeetPerMeter = 3.28084;
 
-    public static final double kMileToMeters = 1609.34;
+    public static final double kMetersPerMile = 1609.34;
 
     public static final double kSampleRate = 1.0;
     public static final double kRecordingInterval = 100;

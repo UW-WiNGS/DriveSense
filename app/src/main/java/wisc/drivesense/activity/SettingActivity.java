@@ -59,7 +59,11 @@ public class SettingActivity extends AppCompatActivity {
         return minDistance;
     }
 
-
+    public static boolean getMetricUnits(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean metric = sharedPref.getString("unit_type", "Imperial").equals("Metric");
+        return metric;
+    }
 
     public static class SettingsFragment extends PreferenceFragment {
         public void onCreate(Bundle savedInstanceState) {

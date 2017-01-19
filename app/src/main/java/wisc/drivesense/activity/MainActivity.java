@@ -24,7 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -39,6 +38,7 @@ import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
+import wisc.drivesense.utility.Units;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -48,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private static String TAG = "MainActivity";
     private MapViewFragment mapFragment;
     private TextView tvSpeed = null;
-    private TextView tvMile = null;
+    private TextView tvSpeedUnit = null;
+    private TextView tvTotalDistance = null;
+    private TextView tvTotalDistanceUnit = null;
     private TextView tvTilt = null;
     private TextView tvElapsed = null;
     private Button btnStart = null;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private TripService boundTripService = null;
     private boolean displayingMap = false;
     private TimerTask elapsedTimeUpdater;
+    private boolean metricUnits;
 
     private class TripServiceConnection implements ServiceConnection {
         private TripService.TripServiceBinder binder = null;
@@ -91,15 +94,15 @@ public class MainActivity extends AppCompatActivity {
 
         // Initializing Facebook Integration
 
-        tvSpeed = (TextView) findViewById(R.id.textspeed);
-        tvMile = (TextView) findViewById(R.id.milesdriven);
+        tvSpeed = (TextView) findViewById(R.id.speed_display);
+        tvSpeedUnit = (TextView) findViewById(R.id.speed_unit);
+        tvTotalDistance = (TextView) findViewById(R.id.distance_driven);
+        tvTotalDistanceUnit = (TextView) findViewById(R.id.distance_driven_unit);
         tvTilt = (TextView) findViewById(R.id.texttilt);
         btnStart = (Button) findViewById(R.id.btnstart);
         tvElapsed = (TextView) findViewById(R.id.elapsedtime);
 
         //tvTilt.setVisibility(View.VISIBLE);
-        tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
-
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         setSupportActionBar(mToolbar);
@@ -119,6 +122,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        metricUnits = SettingActivity.getMetricUnits(this);
+        //only reset displays to 0 on resume if a trip is not being recorded
+        if(boundTripService == null || boundTripService.getCurtrip() == null)
+            resetNumericalDisplays();
         LocalBroadcastManager.getInstance(this).registerReceiver(mTraceMessageReceiver, new IntentFilter("sensor"));
         LocalBroadcastManager.getInstance(this).registerReceiver(mRecordingStatusChangedReciever, new IntentFilter(TripService.TRIP_STATUS_CHANGE));
         bindTripService();
@@ -257,7 +264,8 @@ public class MainActivity extends AppCompatActivity {
         if(boundTripService != null && boundTripService.getCurtrip() == null){
             boundTripService.startRecordingNewTrip();
             startElapsedTime();
-            mapFragment.clearMarkers();
+            if(mapFragment != null)
+                mapFragment.clearMarkers();
         }
     }
 
@@ -268,15 +276,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "Stopping live data..");
-        tvSpeed.setText(String.format("%.1f", 0.0));
-        tvMile.setText(String.format("%.2f", 0.00));
+        resetNumericalDisplays();
+    }
+
+    private void resetNumericalDisplays() {
+        Units.userFacingDouble speed = Units.speed(0, metricUnits);
+        tvSpeed.setText(String.format("%.1f", speed.value));
+        tvSpeedUnit.setText(speed.unitName);
+        Units.userFacingDouble distance = Units.largeDistance(0, metricUnits);
+        tvTotalDistance.setText(String.format("%.2f",  distance.value));
+        tvTotalDistanceUnit.setText(distance.unitName);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
         tvElapsed.setText("0:00");
     }
 
     private void displayMapFragment() {
-        findViewById(R.id.textspeed).setVisibility(View.GONE);
-        findViewById(R.id.speedUnitView).setVisibility(View.GONE);
+        findViewById(R.id.speed_display).setVisibility(View.GONE);
+        findViewById(R.id.speed_unit).setVisibility(View.GONE);
         if(!displayingMap) {
             mapFragment = MapViewFragment.newInstance();
             getSupportFragmentManager()
@@ -289,8 +305,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void hideMapFragment() {
         if(mapFragment != null) {
-            findViewById(R.id.textspeed).setVisibility(View.VISIBLE);
-            findViewById(R.id.speedUnitView).setVisibility(View.VISIBLE);
+            findViewById(R.id.speed_display).setVisibility(View.VISIBLE);
+            findViewById(R.id.speed_unit).setVisibility(View.VISIBLE);
             getSupportFragmentManager()
                     .beginTransaction()
                     .remove(mapFragment)
@@ -325,8 +341,12 @@ public class MainActivity extends AppCompatActivity {
             if (boundTripService != null && boundTripService.getCurtrip() != null) {
                 if (trace instanceof Trace.GPS) {
                     sendToRealTimeMapFragment(trace);
-                    tvSpeed.setText(String.format("%.1f", ((Trace.GPS) trace).speed * Constants.kMeterPSToMilePH));
-                    tvMile.setText(String.format("%.2f", boundTripService.getCurtrip().getDistance() * Constants.kMeterToMile));
+                    Units.userFacingDouble speed = Units.speed(((Trace.GPS) trace).speed, metricUnits);
+                    tvSpeed.setText(String.format("%.1f", speed.value));
+                    tvSpeedUnit.setText(speed.unitName);
+                    Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+                    tvTotalDistance.setText(String.format("%.2f",  distance.value));
+                    tvTotalDistanceUnit.setText(distance.unitName);
                 } else if (trace instanceof Trace.Accel) {
                     tvTilt.setText(String.format("%.0f", boundTripService.getCurtrip().getTilt()) + (char) 0x00B0);
                 }

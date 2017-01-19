@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="unit_types">
-        <item>mi/h</item>
-        <item>km/h</item>
+        <item>Metric</item>
+        <item>Imperial</item>
     </string-array>
 </resources>

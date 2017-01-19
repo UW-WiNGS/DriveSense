@@ -49,32 +49,32 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginRight="16dp"
-        android:layout_above="@+id/milesdriven"
+        android:layout_above="@+id/distance_driven"
         android:text="0:00"
         android:textColor="#FFFFFF"
         android:textSize="35sp" />
     <TextView
-        android:id="@+id/milesdriven"
+        android:id="@+id/distance_driven"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginRight="16dp"
-        android:layout_above="@+id/miles"
+        android:layout_above="@+id/distance_driven_unit"
         android:text="0.00"
         android:textColor="#FFFFFF"
         android:textSize="55sp" />
 
 
     <TextView
-        android:id="@+id/miles"
+        android:id="@+id/distance_driven_unit"
         style="@style/textStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignLeft="@+id/milesdriven"
+        android:layout_alignLeft="@+id/distance_driven"
         android:layout_marginBottom="26dp"
         android:paddingRight="@dimen/activity_horizontal_margin"
-        android:text="miles"
+        android:text="unit"
         android:textSize="30sp" />
 
 
@@ -85,7 +85,7 @@
         android:layout_below="@id/maintoolbar">
 
         <TextView
-            android:id="@+id/textspeed"
+            android:id="@+id/speed_display"
             style="@style/textStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -96,20 +96,20 @@
             android:textSize="80sp" />
 
         <TextView
-            android:id="@+id/speedUnitView"
+            android:id="@+id/speed_unit"
             style="@style/textStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/textspeed"
-            android:layout_toRightOf="@id/textspeed"
-            android:text="mph"
+            android:layout_alignBottom="@id/speed_display"
+            android:layout_toRightOf="@id/speed_display"
+            android:text="unit"
             android:textSize="30sp" />
         <TextView
             android:id="@+id/texttilt"
             style="@style/textStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/textspeed"
+            android:layout_above="@+id/speed_display"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="16dp"
             android:text="0&#xb0;"

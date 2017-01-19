@@ -39,7 +39,7 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         TextView tvStartDate = (TextView) convertView.findViewById(R.id.start_date);
         TextView tvStartTime = (TextView) convertView.findViewById(R.id.start_time);
         TextView tvDuration = (TextView) convertView.findViewById(R.id.duration);
-        TextView tvMiles = (TextView) convertView.findViewById(R.id.miles);
+        TextView tvMiles = (TextView) convertView.findViewById(R.id.distance_driven_unit);
 
         long start = trip.getStartTime();
         Date starting = new Date(start);
