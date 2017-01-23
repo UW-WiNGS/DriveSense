@@ -33,6 +33,7 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
@@ -40,6 +41,7 @@ import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
+import wisc.drivesense.utility.Units;
 
 public class MapActivity extends Activity implements OnMapReadyCallback {
 
@@ -49,9 +51,10 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     private List<Trace.Trip> points_;
     private static String TAG = "MapActivity";
     private RadioButton speedButton;
-    private RadioButton scoreButton;
     private RadioButton brakeButton;
-
+    private TextView tvDuration;
+    private TextView tvDistance;
+    private boolean metricUnits;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +63,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         Log.d(TAG, "onCreate");
 
+        metricUnits = SettingActivity.getMetricUnits(this);
+
         speedButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
-        scoreButton = (RadioButton) findViewById(R.id.radioButtonScore);
         brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
+        tvDuration = (TextView) findViewById(R.id.duration_display);
+        tvDistance = (TextView) findViewById(R.id.distance_display);
 
         Intent intent = getIntent();
         String uuid = intent.getStringExtra("uuid");
@@ -89,8 +95,12 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
         //crash when there is no gps
         Log.d(TAG, String.valueOf(points_.size()));
 
-        TextView ratingView = (TextView) findViewById(R.id.rating);
-        ratingView.setText(String.format("%.1f", trip_.getScore()));
+        long duration = trip_.getDuration();
+        final long min = TimeUnit.MILLISECONDS.toMinutes(duration);
+        final long sec = TimeUnit.MILLISECONDS.toSeconds(duration - TimeUnit.MINUTES.toMillis(min));
+        tvDuration.setText(String.format("%d:%02d", min, sec));
+        Units.userFacingDouble distance = Units.largeDistance(trip_.getDistance(), metricUnits);
+        tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
 
         map_ = null;
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
@@ -169,8 +179,6 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         if(speedButton.isChecked()) {
             index = 2;
-        } else if(scoreButton.isChecked()) {
-            index = 3;
         } else if(brakeButton.isChecked()) {
             index = 4;
         } else {

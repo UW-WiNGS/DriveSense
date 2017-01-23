@@ -42,7 +42,7 @@ public class Units {
             val.unitName = "km/h";
         } else {
             val.value = metersPerSecond * Constants.kMeterPSToMilePH;
-            val.unitName = "mi/h";
+            val.unitName = "mph";
         }
         return val;
     }
