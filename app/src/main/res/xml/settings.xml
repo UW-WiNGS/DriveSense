@@ -22,7 +22,7 @@
             android:key="unit_type" />
         <CheckBoxPreference
             android:defaultValue="false"
-            android:title="Show Map While Driving"
+            android:title="Show Map on Recording Screen"
             android:key="showMap" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Recording Settings">

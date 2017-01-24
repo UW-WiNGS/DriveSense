@@ -259,7 +259,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
 
         // market the starting and ending points
         LatLng start = trip_.getStartPoint();
-        MarkerOptions startOptions = new MarkerOptions().position(start).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_car));
+        MarkerOptions startOptions = new MarkerOptions().position(start).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         map_.addMarker(startOptions);
         LatLng end = trip_.getEndPoint();
         MarkerOptions endOptions = new MarkerOptions().position(end);

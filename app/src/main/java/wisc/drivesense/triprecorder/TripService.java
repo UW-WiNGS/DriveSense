@@ -26,6 +26,7 @@ import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.uploader.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.GsonSingleton;
+import wisc.drivesense.utility.RatingCalculation;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
@@ -37,6 +38,10 @@ public class TripService extends Service {
     private long lastSpeedNonzero = 0;
     private boolean stoprecording = false;
     private TraceStorageWorker tsw;
+
+    //TODO
+    private RealTimeTiltCalculation tiltCalc;
+    private RatingCalculation rating;
 
     public Binder _binder = new TripServiceBinder();
 
@@ -117,6 +122,9 @@ public class TripService extends Service {
 
         tsw = new TraceStorageWorker(curtrip_.uuid.toString());
         tsw.start();
+
+        tiltCalc = new RealTimeTiltCalculation();
+        rating = new RatingCalculation(curtrip_.getGPSPoints().size(), curtrip_.getScore());
 
         startSensors();
 
@@ -215,21 +223,25 @@ public class TripService extends Service {
                 lastSpeedNonzero = trace.time;
             }
 
-            if(trace instanceof Trace.GPS) {
-                Trace.GPS gps = (Trace.GPS)trace;
-                //Log.d(TAG, "Got message: " + trace.toJson());
+            tiltCalc.processTrace(trace);
 
-                if(gps.speed != 0.0) {
-                    lastSpeedNonzero = gps.time;
+            if(trace instanceof Trace.GPS) {
+                Trace.Trip tt = rating.getRating((Trace.GPS)trace);
+                tt.tilt = (float)tiltCalc.getTilt();
+                if(tt.speed != 0.0) {
+                    lastSpeedNonzero = tt.time;
                 }
 
-                curtrip_.addGPS(gps);
+                curtrip_.addGPS(tt);
+                curtrip_.setScore(tt.score);
+                curtrip_.setTilt(tt.tilt);
+
+                //replace the contents of message with this triptrace instead of the GPS trace
+                message = new TraceMessage(tt);
             }
 
-            if(trace instanceof Trace.Trip) {
-                curtrip_.setTilt(((Trace.Trip) trace).tilt);
-                curtrip_.setScore(((Trace.Trip) trace).score);
-            }
+
+
             boolean endTripAuto= SettingActivity.getEndTripAuto(context);
             if(!stoprecording) {
                 try {
@@ -246,6 +258,8 @@ public class TripService extends Service {
             boolean pauseRecordingPref = SettingActivity.getPauseWhenStationary(context);
             if(((curtime - lastSpeedNonzero) > context.getResources().getInteger(R.integer.default_pause_timeout) * 1000)
                     && pauseRecordingPref) {
+                if(stoprecording == false)
+                    Log.d(TAG, "Pausing trip recording because of no movement");
                 stoprecording = true;
             } else {
                 stoprecording = false;

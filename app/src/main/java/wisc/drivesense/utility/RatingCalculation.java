@@ -9,31 +9,38 @@ import wisc.drivesense.triprecorder.RealTimeTiltCalculation;
 /**
  * Created by lkang on 4/20/16.
  */
-public class Rating implements Serializable {
-    private RealTimeTiltCalculation tiltCalc;
+public class RatingCalculation implements Serializable {
     private int counter_;
     private Trace.GPS lastTrace_;
     private double lastSpeed_;
     private double score_ = 10.0;
 
-    private static String TAG = "Rating";
+    private static String TAG = "RatingCalculation";
 
-    public Rating(RealTimeTiltCalculation tiltCalc) {
+    public RatingCalculation() {
         lastSpeed_ = -1.0;
         lastTrace_ = null;
         counter_ = 0;
-        this.tiltCalc = tiltCalc;
+    }
+
+    /**
+     * Initialize the rating calculation mechanism with stats from an existing trip
+     * @param traceCount
+     * @param score
+     */
+    public RatingCalculation(int traceCount, double score) {
+        this();
+        counter_ = traceCount;
+        score_ = score;
     }
 
     public Trace.Trip getRating(Trace.GPS trace) {
         float brake = this.calculateBraking(trace);
-        tiltCalc.processTrace(trace);
         //create a new trace for GPS, since we use GPS to capture driving behaviors
         Trace.Trip ntrace = trace.copyTrace(Trace.Trip.class);
         ntrace.time = trace.time;
         ntrace.score = (float)score_;
         ntrace.brake = brake;
-        ntrace.tilt = (float)tiltCalc.getTilt();
         return ntrace;
     }
 

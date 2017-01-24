@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
         tvSpeedUnit.setText(speed.unitName);
         Units.userFacingDouble distance = Units.largeDistance(0, metricUnits);
         //tvTotalDistance.setText(String.format("%.2f",  distance.value));
-        tvTotalDistance.setText(String.format("%.2f",  distance.value) + "*");
+        tvTotalDistance.setText(String.format("*%.2f",  distance.value));
         tvTotalDistanceUnit.setText(distance.unitName);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
         tvElapsed.setText("0:00");

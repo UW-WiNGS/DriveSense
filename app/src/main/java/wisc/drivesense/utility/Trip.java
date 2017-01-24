@@ -23,7 +23,7 @@ public class Trip implements Serializable {
     private List<Trace.Trip> gps_;
     private double tilt_;
 
-    //private Rating rating = null;
+    //private RatingCalculation rating = null;
 
     private String TAG = "Trip";
 
@@ -86,10 +86,8 @@ public class Trip implements Serializable {
      *
      * @param trace
      */
-    public void addGPS(Trace.GPS trace) {
-
-        if(trace instanceof Trace.GPS)
-            gps_.add((Trace.Trip)trace);
+    public void addGPS(Trace.Trip trace) {
+        gps_.add((Trace.Trip)trace);
         speed_ = trace.speed;
         this.endTime_ = trace.time;
 

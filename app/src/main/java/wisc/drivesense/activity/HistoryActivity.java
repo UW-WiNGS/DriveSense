@@ -101,7 +101,7 @@ public class HistoryActivity extends FragmentActivity {
             int monthOffset = (position-getCount()+1);
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.MONTH, monthOffset);
-            return cal.getDisplayName(Calendar.MONTH,Calendar.LONG, Locale.getDefault());
+            return cal.getDisplayName(Calendar.MONTH,Calendar.LONG, Locale.getDefault()) + " " + cal.get(Calendar.YEAR);
         }
     }
 
