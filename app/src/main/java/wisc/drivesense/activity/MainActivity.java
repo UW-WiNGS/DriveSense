@@ -281,10 +281,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void resetNumericalDisplays() {
         Units.userFacingDouble speed = Units.speed(0, metricUnits);
-        tvSpeed.setText(String.format("%.1f", speed.value));
+        //tvSpeed.setText(String.format("%.1f", speed.value));
+        tvSpeed.setText("--.--");
         tvSpeedUnit.setText(speed.unitName);
         Units.userFacingDouble distance = Units.largeDistance(0, metricUnits);
-        tvTotalDistance.setText(String.format("%.2f",  distance.value));
+        //tvTotalDistance.setText(String.format("%.2f",  distance.value));
+        tvTotalDistance.setText(String.format("%.2f",  distance.value) + "*");
         tvTotalDistanceUnit.setText(distance.unitName);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
         tvElapsed.setText("0:00");
@@ -349,6 +351,13 @@ public class MainActivity extends AppCompatActivity {
                     tvTotalDistanceUnit.setText(distance.unitName);
                 } else if (trace instanceof Trace.Accel) {
                     tvTilt.setText(String.format("%.0f", boundTripService.getCurtrip().getTilt()) + (char) 0x00B0);
+                } else if (trace instanceof Trace.GPSStatus) {
+                    //Log.d(TAG, trace.toJson());
+                    if(((Trace.GPSStatus) trace).values()[0] == 0.0) {
+                        tvSpeed.setText("--.--");
+                        Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+                        tvTotalDistance.setText(String.format("%.2f", distance.value) + "*");
+                    }
                 }
             }
         }

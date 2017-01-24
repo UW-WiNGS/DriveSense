@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
+import java.util.Vector;
 
 public abstract class Trace implements Serializable {
 
@@ -50,6 +51,7 @@ public abstract class Trace implements Serializable {
             matrix = v;
         }
     }
+    public static class GPSStatus extends Vector3 { }
     @Expose
     public long time;
     public Trace copyTrace() {

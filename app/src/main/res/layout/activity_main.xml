@@ -60,7 +60,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="16dp"
         android:layout_above="@+id/distance_driven_unit"
-        android:text="0.00"
+        android:text="0.00*"
         android:textColor="#FFFFFF"
         android:textSize="55sp" />
 
@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true"
-            android:text="0.0"
+            android:text="--.--"
             android:textAlignment="center"
             android:textSize="80sp" />
 
