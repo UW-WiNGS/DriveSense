@@ -8,6 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="PagerTitleStrip">
+        <item name="android:textColor">@color/pager_tab_strip_text_selector</item>
+    </style>
+
     <style name="ToolbarTheme" parent="@style/AppBarOverlay">
         <!-- This would set the toolbar's background color -->
         <!--<item name="android:background">@drawable/main_activity_background</item>-->
