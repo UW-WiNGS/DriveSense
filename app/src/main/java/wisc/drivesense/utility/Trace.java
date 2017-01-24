@@ -51,7 +51,6 @@ public abstract class Trace implements Serializable {
             matrix = v;
         }
     }
-    public static class GPSStatus extends Vector3 { }
     @Expose
     public long time;
     public Trace copyTrace() {

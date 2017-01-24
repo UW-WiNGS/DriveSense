@@ -87,15 +87,7 @@ public class SensorService extends Service implements SensorEventListener, Locat
     @Override
     public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
         // TODO Auto-generated method stub
-        Log.d(TAG, arg0 + " " + arg1 + " " + arg2);
-        Trace.GPSStatus trace = new Trace.GPSStatus();
-        trace.time = System.currentTimeMillis();
-        if(arg1 == LocationProvider.AVAILABLE) {
-            trace.values(new float[]{1,1,1});
-        } else {
-            trace.values(new float[]{0,0,0});
-        }
-        sendTrace(trace);
+        Log.d(TAG, "GPS Status: " + arg0 + " " + arg1 + " " + arg2);
     }
 
     @Override

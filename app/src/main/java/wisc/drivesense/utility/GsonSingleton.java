@@ -30,7 +30,6 @@ public class GsonSingleton implements JsonDeserializer<TraceMessage> {
         typeLookup.put(Trace.Gyro.class.getSimpleName(), Trace.Gyro.class);
         typeLookup.put(Trace.Rotation.class.getSimpleName(), Trace.Rotation.class);
         typeLookup.put(Trace.Magnetometer.class.getSimpleName(), Trace.Magnetometer.class);
-        typeLookup.put(Trace.GPSStatus.class.getSimpleName(), Trace.GPSStatus.class);
     }
     public static final Map<Type, String> typeNameLookup;
     static {

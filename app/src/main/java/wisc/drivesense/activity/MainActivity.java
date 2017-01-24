@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean displayingMap = false;
     private TimerTask elapsedTimeUpdater;
     private boolean metricUnits;
+    private Handler noGPSHandler = new Handler();
 
     private class TripServiceConnection implements ServiceConnection {
         private TripService.TripServiceBinder binder = null;
@@ -78,6 +80,16 @@ public class MainActivity extends AppCompatActivity {
             boundTripService=null;
         }
     }
+
+    private Runnable noGPSRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "No GPS, resetting speed display.");
+            tvSpeed.setText("--.--");
+            Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+            tvTotalDistance.setText(String.format("*%.2f", distance.value));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
             elapsedTimeUpdater = null;
         }
     }
+    private void resetGPSTimeout() {
+        noGPSHandler.removeCallbacks(noGPSRunnable, null);
+        noGPSHandler.postDelayed(noGPSRunnable, 10000);
+    }
     private void updateElapsedTime () {
         if (boundTripService != null && boundTripService.getCurtrip() != null) {
             long duration = System.currentTimeMillis() - boundTripService.getCurtrip().getStartTime();
@@ -260,10 +276,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-
         if(boundTripService != null && boundTripService.getCurtrip() == null){
             boundTripService.startRecordingNewTrip();
             startElapsedTime();
+            resetGPSTimeout();
             if(mapFragment != null)
                 mapFragment.clearMarkers();
         }
@@ -271,8 +287,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopRecording() {
         if (boundTripService != null && boundTripService.getCurtrip() != null) {
-            boundTripService.stopRecordingTrip();
+            noGPSHandler.removeCallbacks(noGPSRunnable, null);
             stopElapsedTime();
+            boundTripService.stopRecordingTrip();
         }
 
         Log.d(TAG, "Stopping live data..");
@@ -281,11 +298,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void resetNumericalDisplays() {
         Units.userFacingDouble speed = Units.speed(0, metricUnits);
-        //tvSpeed.setText(String.format("%.1f", speed.value));
         tvSpeed.setText("--.--");
         tvSpeedUnit.setText(speed.unitName);
         Units.userFacingDouble distance = Units.largeDistance(0, metricUnits);
-        //tvTotalDistance.setText(String.format("%.2f",  distance.value));
         tvTotalDistance.setText(String.format("*%.2f",  distance.value));
         tvTotalDistanceUnit.setText(distance.unitName);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
@@ -343,6 +358,7 @@ public class MainActivity extends AppCompatActivity {
             if (boundTripService != null && boundTripService.getCurtrip() != null) {
                 if (trace instanceof Trace.GPS) {
                     sendToRealTimeMapFragment(trace);
+                    resetGPSTimeout();
                     Units.userFacingDouble speed = Units.speed(((Trace.GPS) trace).speed, metricUnits);
                     tvSpeed.setText(String.format("%.1f", speed.value));
                     tvSpeedUnit.setText(speed.unitName);
@@ -351,13 +367,6 @@ public class MainActivity extends AppCompatActivity {
                     tvTotalDistanceUnit.setText(distance.unitName);
                 } else if (trace instanceof Trace.Accel) {
                     tvTilt.setText(String.format("%.0f", boundTripService.getCurtrip().getTilt()) + (char) 0x00B0);
-                } else if (trace instanceof Trace.GPSStatus) {
-                    //Log.d(TAG, trace.toJson());
-                    if(((Trace.GPSStatus) trace).values()[0] == 0.0) {
-                        tvSpeed.setText("--.--");
-                        Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
-                        tvTotalDistance.setText(String.format("%.2f", distance.value) + "*");
-                    }
                 }
             }
         }
