@@ -18,7 +18,7 @@
             android:defaultValue="Imperial"
             android:title="Units"
             android:entries="@array/unit_types"
-            android:entryValues="@array/unit_types"
+            android:entryValues="@array/unit_values"
             android:key="unit_type" />
         <CheckBoxPreference
             android:defaultValue="false"

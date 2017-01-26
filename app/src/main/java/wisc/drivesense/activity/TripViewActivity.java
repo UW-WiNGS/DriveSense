@@ -8,11 +8,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
@@ -30,6 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import wisc.drivesense.DriveSenseApp;
@@ -43,12 +46,12 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
     static final LatLng madison_ = new LatLng(43.073052, -89.401230);
     private GoogleMap map_ = null;
     private Trip trip_;
-    private List<Trace.Trip> points_;
     private static String TAG = "TripViewActivity";
     private RadioButton speedButton;
     private RadioButton brakeButton;
     private TextView tvDuration;
     private TextView tvDistance;
+    private ProgressBar pbLoadingSpinner;
     private boolean metricUnits;
 
     @Override
@@ -64,6 +67,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
         tvDuration = (TextView) findViewById(R.id.duration_display);
         tvDistance = (TextView) findViewById(R.id.distance_display);
+        pbLoadingSpinner = (ProgressBar) findViewById(R.id.mapLoadingSpinner);
 
         Intent intent = getIntent();
         String uuid = intent.getStringExtra("uuid");
@@ -85,10 +89,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        points_ = DriveSenseApp.DBHelper().getGPSPoints(trip_.uuid.toString());
-        trip_.setGPSPoints(points_);
-        //crash when there is no gps
-        Log.d(TAG, String.valueOf(points_.size()));
+        new AsyncTripLoader().execute(trip_.uuid);
 
         long duration = trip_.getDuration();
         final long min = TimeUnit.MILLISECONDS.toMinutes(duration);
@@ -100,6 +101,24 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         map_ = null;
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+    }
+
+    private class AsyncTripLoader extends AsyncTask<UUID, Void, List<Trace.Trip>> {
+        protected List<Trace.Trip> doInBackground(UUID ... uuids) {
+            int count = uuids.length;
+            if(count!=1)
+                return null;
+
+            String uuid = uuids[0].toString();
+            List<Trace.Trip> points = DriveSenseApp.DBHelper().getGPSPoints(uuid);
+            return points;
+        }
+        protected void onPostExecute(List<Trace.Trip> result) {
+            trip_.setGPSPoints(result);
+            //only try to populate the map if it is loaded already
+            if(map_ != null)
+                populateMap();
+        }
     }
 
     @Override
@@ -122,9 +141,25 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         map_.setBuildingsEnabled(true);
         map_.getUiSettings().setZoomControlsEnabled(true);
 
-        if(trip_ == null) {
-            return;
+        CameraPosition position = CameraPosition.builder()
+                .target(madison_)
+                .zoom( 15f )
+                .bearing( 0.0f )
+                .tilt( 0.0f )
+                .build();
+
+        map_.moveCamera(CameraUpdateFactory.newCameraPosition(position));
+
+        if(trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
+            populateMap();
         }
+    }
+
+    public void populateMap() {
+        if(trip_.getGPSPoints() == null)
+            return;
+
+        pbLoadingSpinner.setVisibility(View.INVISIBLE);
 
         LatLng start;
         int sz = trip_.getGPSPoints().size();
@@ -149,7 +184,6 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
             plotRoute();
         }
     }
-
 
     public static List<BitmapDescriptor> producePoints(int [] colors) {
         List<BitmapDescriptor> res = new ArrayList<BitmapDescriptor>();
@@ -191,7 +225,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
             return;
         }
 
-        if(points_ == null || points_.size() <=2) {
+        if(trip_.getGPSPoints() == null || trip_.getGPSPoints().size() <=2) {
             Log.e(TAG, "invalid GPS points");
             return;
         }
@@ -205,7 +239,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         //    }
         //}
 
-        int sz = points_.size();
+        int sz = trip_.getGPSPoints().size();
         Log.d(TAG, "gps size after remove zeros" + sz);
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -218,7 +252,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         double step = distance/1000;
         Trace.Trip lastgps = null;
         for (int i = 0; i < sz; i++) {
-            Trace.Trip point = points_.get(i);
+            Trace.Trip point = trip_.getGPSPoints().get(i);
             if(lastgps == null) {
                 lastgps = point;
             } else {

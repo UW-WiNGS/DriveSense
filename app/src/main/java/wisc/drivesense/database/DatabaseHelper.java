@@ -214,6 +214,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return trip;
     }
 
+    /**
+     * Get trip for the specificied UUID. The GPS points will not be populated,
+     * and must be populated using getGPSPoints
+     * @param uuid Identifier of the trip to load
+     * @return
+     */
     public Trip getTrip(String uuid) {
         List<Trip> trips = loadTrips("uuid='"+uuid+"'");
         if(trips.size() != 1) {

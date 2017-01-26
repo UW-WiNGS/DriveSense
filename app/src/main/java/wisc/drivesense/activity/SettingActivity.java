@@ -61,7 +61,7 @@ public class SettingActivity extends AppCompatActivity {
 
     public static boolean getMetricUnits(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean metric = sharedPref.getString("unit_type", "Imperial").equals("Metric");
+        boolean metric = sharedPref.getString("unit_type", "2").equals("1");
         return metric;
     }
 
