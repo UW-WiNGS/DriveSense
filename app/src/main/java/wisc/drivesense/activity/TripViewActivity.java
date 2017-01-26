@@ -3,14 +3,12 @@ package wisc.drivesense.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -29,7 +27,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,19 +34,17 @@ import java.util.concurrent.TimeUnit;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 import wisc.drivesense.utility.Units;
 
-public class MapActivity extends Activity implements OnMapReadyCallback {
+public class TripViewActivity extends Activity implements OnMapReadyCallback {
 
     static final LatLng madison_ = new LatLng(43.073052, -89.401230);
     private GoogleMap map_ = null;
     private Trip trip_;
     private List<Trace.Trip> points_;
-    private static String TAG = "MapActivity";
+    private static String TAG = "TripViewActivity";
     private RadioButton speedButton;
     private RadioButton brakeButton;
     private TextView tvDuration;
@@ -59,7 +54,7 @@ public class MapActivity extends Activity implements OnMapReadyCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        setContentView(R.layout.activity_single_trip_view);
 
         Log.d(TAG, "onCreate");
 

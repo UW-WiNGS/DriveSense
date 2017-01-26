@@ -34,7 +34,6 @@ import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
-import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -376,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
     public void showDriveRating() {
         Trip lastTrip = DriveSenseApp.DBHelper().getLastTrip();
         if(lastTrip != null && lastTrip.getStatus() == 2) {
-            Intent intent = new Intent(this, MapActivity.class);
+            Intent intent = new Intent(this, TripViewActivity.class);
             intent.putExtra("uuid", lastTrip.uuid.toString());
             startActivity(intent);
         } else {

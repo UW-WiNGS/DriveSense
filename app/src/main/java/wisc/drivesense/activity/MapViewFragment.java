@@ -59,7 +59,7 @@ public class MapViewFragment extends Fragment {
         }
 
 
-        bitmapDescriptors = MapActivity.producePoints(colors);
+        bitmapDescriptors = TripViewActivity.producePoints(colors);
 
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -120,7 +120,7 @@ public class MapViewFragment extends Fragment {
         if(trip == null) {
             return;
         }
-        bitmapDescriptors = MapActivity.producePoints(colors);
+        bitmapDescriptors = TripViewActivity.producePoints(colors);
 
         List<Trace.Trip> gps = trip.getGPSPoints();
         int sz = gps.size();

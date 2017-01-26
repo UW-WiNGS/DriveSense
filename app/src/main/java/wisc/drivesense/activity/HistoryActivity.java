@@ -137,7 +137,7 @@ public class HistoryActivity extends FragmentActivity {
                     Log.d(TAG, view.toString() + ";" + position + ";" + id);
 
                     Trip trip = adapter_.getItem(position);
-                    Intent intent = new Intent(getContext(), MapActivity.class);
+                    Intent intent = new Intent(getContext(), TripViewActivity.class);
                     intent.putExtra("uuid", trip.uuid.toString());
                     startActivity(intent);
                 }

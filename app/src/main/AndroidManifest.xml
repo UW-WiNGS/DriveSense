@@ -70,7 +70,7 @@
         </receiver>
 
         <activity
-            android:name=".activity.MapActivity"
+            android:name=".activity.TripViewActivity"
             android:label="@string/title_activity_map"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
