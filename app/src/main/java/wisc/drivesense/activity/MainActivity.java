@@ -189,9 +189,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateElapsedTime () {
         if (boundTripService != null && boundTripService.getCurtrip() != null) {
             long duration = System.currentTimeMillis() - boundTripService.getCurtrip().getStartTime();
-            final long min = TimeUnit.MILLISECONDS.toMinutes(duration);
-            final long sec = TimeUnit.MILLISECONDS.toSeconds(duration - TimeUnit.MINUTES.toMillis(min));
-            tvElapsed.setText(String.format("%d:%02d", min, sec));
+            tvElapsed.setText(Units.displayTimeInterval(duration));
         }
     }
 
@@ -303,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         tvTotalDistance.setText(String.format("*%.2f",  distance.value));
         tvTotalDistanceUnit.setText(distance.unitName);
         tvTilt.setText(String.format("%.0f", 0.0) + (char) 0x00B0);
-        tvElapsed.setText("0:00");
+        tvElapsed.setText(Units.displayTimeInterval(0));
     }
 
     private void displayMapFragment() {

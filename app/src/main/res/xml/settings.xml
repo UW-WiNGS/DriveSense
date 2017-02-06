@@ -24,6 +24,11 @@
             android:defaultValue="false"
             android:title="Show Map on Recording Screen"
             android:key="showMap" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:title="Show Driving Score (Experimental)"
+            android:key="showScore"
+            android:persistent="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Recording Settings">
 

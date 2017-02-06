@@ -92,9 +92,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         new AsyncTripLoader().execute(trip_.uuid);
 
         long duration = trip_.getDuration();
-        final long min = TimeUnit.MILLISECONDS.toMinutes(duration);
-        final long sec = TimeUnit.MILLISECONDS.toSeconds(duration - TimeUnit.MINUTES.toMillis(min));
-        tvDuration.setText(String.format("%d:%02d", min, sec));
+        tvDuration.setText(Units.displayTimeInterval(duration));
         Units.userFacingDouble distance = Units.largeDistance(trip_.getDistance(), metricUnits);
         tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
 

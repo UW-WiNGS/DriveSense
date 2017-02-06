@@ -53,12 +53,12 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MMMM d");
         SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
 
-        double duration = trip.getDuration();
+        long duration = trip.getDuration();
         double score = trip.getScore();
 
         tvStartDate.setText(dateFormat.format(starting));
         tvStartTime.setText(timeFormat.format(starting));
-        tvDuration.setText(String.format("%.2f", duration/(1000*60.0)) + " mins");
+        tvDuration.setText(Units.displayTimeInterval(duration));
         Units.userFacingDouble distance = Units.largeDistance(trip.getDistance(), metricUnits);
         tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
 
