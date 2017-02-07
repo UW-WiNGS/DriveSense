@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -120,7 +119,7 @@ public class TripService extends Service {
         Toast.makeText(this, "Trip recording service starting in background.", Toast.LENGTH_SHORT).show();
         user = DriveSenseApp.DBHelper().getCurrentUser();
 
-        tsw = new TraceStorageWorker(curtrip_.uuid.toString());
+        tsw = new TraceStorageWorker(curtrip_.uuid.toString(), this);
         tsw.start();
 
         tiltCalc = new RealTimeTiltCalculation();
@@ -158,7 +157,7 @@ public class TripService extends Service {
             }
             curtrip_.setEndTime(System.currentTimeMillis());
             DriveSenseApp.DBHelper().updateTrip(curtrip_);
-            TripUploadRequest.Start();
+            TripUploadRequest.Start(this);
             curtrip_ = null;
         }
 
@@ -273,12 +272,14 @@ public class TripService extends Service {
         private LinkedBlockingQueue<TraceMessage> traces;
         private String tripUUID;
         private long lastSent = 0;
+        private Context context;
         private volatile double curDistance;
         ArrayList<TraceMessage> unsentMessages = new ArrayList<TraceMessage>();
         private volatile boolean running = true;
-        public TraceStorageWorker(String tripUUID) {
+        public TraceStorageWorker(String tripUUID, Context context) {
             traces = new LinkedBlockingQueue();
             this.tripUUID = tripUUID;
+            this.context = context;
         }
         public void addTrace(TraceMessage tm, double curDistance) {
             try {
@@ -303,7 +304,11 @@ public class TripService extends Service {
                     for (int i = 0; i < tmList.size(); i++) {
                         TraceMessage tm = tmList.get(i);
                         tm.rowid = rowids[i];
-                        unsentMessages.add(tm);
+                        if(tm.value.getClass() == Trace.GPS.class)
+                        {
+                            //only add GPS traces to be sent right now. Other traces will be synced later on WiFi
+                            unsentMessages.add(tm);
+                        }
                     }
                 } catch (InterruptedException e) {
                     Log.d(TAG, "Worker thread was interrupted");
@@ -324,7 +329,7 @@ public class TripService extends Service {
                     lastSent = System.currentTimeMillis();
                     unsentMessages = new ArrayList<>();
 
-                    TripUploadRequest.Start(payload);
+                    TripUploadRequest.Start(payload, context);
                 }
             }
             Log.d(TAG, "Worker thread done running");

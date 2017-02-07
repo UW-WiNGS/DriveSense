@@ -173,13 +173,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public List<TraceMessage> getUnsentTraces(String uuid, int limit) {
+    /**
+     *
+     * @param uuid
+     * @param limit
+     * @param vitalOnly Only include "important" unsent traces, to save data. (GPS only)
+     * @return
+     */
+    public List<TraceMessage> getUnsentTraces(String uuid, int limit, boolean vitalOnly) {
+        String typeQuery = "";
+        if(vitalOnly) {
+            typeQuery = " and trace.type = '" + GsonSingleton.typeNameLookup.get(Trace.GPS.class)+"'";
+        }
         String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
-                + " on trace.tripid = trip.id WHERE trace.synced = 0 and trip.uuid = '" + uuid +"' LIMIT "+limit;
+                + " on trace.tripid = trip.id WHERE trace.synced = 0"
+                + typeQuery+" and trip.uuid = '" + uuid +"' LIMIT "+limit;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         List<TraceMessage> res = cursorToTraces(cursor);
         cursor.close();
         return res;
+    }
+    public List<TraceMessage> getUnsentTraces(String uuid, int limit) {
+        return getUnsentTraces(uuid, limit, false);
     }
     /**
      * Get the gps points of a trip, which is identified by the start time (the name of the database)

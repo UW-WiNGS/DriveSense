@@ -146,7 +146,7 @@ public class HistoryActivity extends FragmentActivity {
 
             listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                public boolean onItemLongClick(AdapterView<?> parent, final View view, final int position, long id) {
                     Log.d(TAG, view.toString() + ";" + position + ";" + id);
                     AlertDialog.Builder showPlace = new AlertDialog.Builder(getContext());
                     showPlace.setMessage("Remove this trip?");
@@ -156,7 +156,7 @@ public class HistoryActivity extends FragmentActivity {
                             Trip trip = adapter_.getItem(position);
                             DriveSenseApp.DBHelper().deleteTrip(trip.uuid.toString());
                             adapter_.remove(trip);
-                            TripUploadRequest.Start();
+                            TripUploadRequest.Start(view.getContext());
                         }
                     });
                     showPlace.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {

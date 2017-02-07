@@ -29,7 +29,7 @@ public class DriveSenseApp extends Application {
         DBHelper().finalizeTrips();
 
         // Attempt to upload any unsent trips
-        TripUploadRequest.Start();
+        TripUploadRequest.Start(this);
     }
 
     public static synchronized RequestQueue RequestQueue() {

@@ -21,7 +21,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         if(isConnected) {
             Log.d(TAG, "Internet is Connected!");
-            TripUploadRequest.Start();
+            TripUploadRequest.Start(context);
         } else {
             Log.d(TAG, "Internet is Closed!");
         }
