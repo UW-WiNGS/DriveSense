@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.VolleyError;
@@ -15,6 +16,7 @@ import wisc.drivesense.httpPayloads.CompressedGSONRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
+import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
 import static wisc.drivesense.utility.Constants.kBatchUploadCount;
@@ -27,6 +29,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
     private static volatile boolean running = false;
     private static volatile int failureCount = 0;
     private static final int FAILURE_THRESHOLD = 10;
+    private static final String TAG = "TripUploadRequest";
 
     private Context context;
 
@@ -54,25 +57,22 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
      */
     public static synchronized void Start(Context context) {
         if(!running && context != null) {
-            List<Trip> trips = DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1");
-            if(trips.size() == 0) return;
             boolean wifi = wifiConnected(context);
+
+            //create a list of trips with either unsynced metadata or unsent traces.
+            List<Trip> trips = DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1");
+            List<Trip> unsent = DriveSenseApp.DBHelper().getTripsWithUnsentTraces(!wifi);
+            Log.d(TAG, "Found "+trips.size()+" trips with unsynced metadata and "+unsent.size()+" trips with unsent traces");
+            trips.addAll(unsent);
+            if(trips.size() == 0) return;
             TripPayload payload = new TripPayload();
-            for (int i = 0; i < trips.size(); i++) {
-                Trip trip = trips.get(i);
-                payload.guid = trip.uuid.toString();
-                payload.distance = trip.getDistance();
-                payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid, kBatchUploadCount, !wifi);
-                payload.status = trip.getStatus();
-                if(payload.traces.size() > 0) {
-                    //break as soon as we find a trip with traces that are uploadable given the current WiFi state
-                    break;
-                }
-            }
-            if(payload.traces.size() > 0) {
-                // Only start any upload if we found a trip with uploadable traces
-                Start(payload, context);
-            }
+            Trip trip = trips.get(0);
+            payload.guid = trip.uuid.toString();
+            payload.distance = trip.getDistance();
+            payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid, kBatchUploadCount, !wifi);
+            payload.status = trip.getStatus();
+
+            Start(payload, context);
         }
     }
 
@@ -93,10 +93,6 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
         return wifi;
     }
 
-    private static boolean needsUpload() {
-        return DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1").size() > 0;
-    }
-
 
     private TripUploadRequest(int method, String url, TripPayload body, DriveSenseToken dsToken, Context context) {
         super(method, url, body, TripPayload.class, dsToken);
@@ -105,7 +101,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
 
     private synchronized void onComplete() {
         running = false;
-        if(failureCount < FAILURE_THRESHOLD && needsUpload())
+        if(failureCount < FAILURE_THRESHOLD)
             Start(context);
     }
 
@@ -125,11 +121,8 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
         }
         DriveSenseApp.DBHelper().markTracesSynced(traceids);
 
-        // Null check is apparently necessary because java is dumb at autoboxing
-        if(((TripPayload)payload).status != null && ((TripPayload)payload).status != 1 &&
-                DriveSenseApp.DBHelper().getUnsentTraces(((TripPayload)payload).guid, 1).isEmpty()) {
-            DriveSenseApp.DBHelper().markTripSynced(((TripPayload)payload).guid);
-        }
+        // Mark trip synced. Note that this does not mean all traces have been synced, just metadata
+        DriveSenseApp.DBHelper().markTripSynced(((TripPayload)payload).guid);
         onComplete();
     }
 }

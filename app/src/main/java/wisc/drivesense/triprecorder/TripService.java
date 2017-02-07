@@ -304,7 +304,7 @@ public class TripService extends Service {
                     for (int i = 0; i < tmList.size(); i++) {
                         TraceMessage tm = tmList.get(i);
                         tm.rowid = rowids[i];
-                        if(tm.value.getClass() == Trace.GPS.class)
+                        if(tm.value.getClass() == Trace.Trip.class)
                         {
                             //only add GPS traces to be sent right now. Other traces will be synced later on WiFi
                             unsentMessages.add(tm);

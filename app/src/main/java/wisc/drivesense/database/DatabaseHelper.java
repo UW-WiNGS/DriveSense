@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
@@ -40,6 +41,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS "
             + TABLE_USER + "(email TEXT, firstname TEXT, lastname TEXT, dstoken TEXT);";
 
+    // Synced flag on a trip ONLY indicates that the metadata for the trip has been synced
+    // Trips with unsynced traces still need to be found by looking at those flags
     private static final String CREATE_TABLE_TRIP = "CREATE TABLE IF NOT EXISTS "
             + TABLE_TRIP + "(id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, starttime INTEGER, endtime INTEGER,"
             + " distance REAL, score REAL, status INTEGER, synced INTEGER, email TEXT);";
@@ -50,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     //Index Create
     private static final String CREATE_INDEX_TRACE="CREATE INDEX IF NOT EXISTS i1 ON "+ TABLE_TRACE +"(tripid,type)";
+    private static final String CREATE_INDEX2_TRACE="CREATE INDEX IF NOT EXISTS i2 ON "+ TABLE_TRACE +" (synced)";
 
     private static final String DROP_TABLE = "DROP TABLE ";
 
@@ -68,6 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_USER);
         db.execSQL(CREATE_TABLE_TRACE);
         db.execSQL(CREATE_INDEX_TRACE);
+        db.execSQL(CREATE_INDEX2_TRACE);
     }
 
     @Override
@@ -80,7 +85,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void onOpen(SQLiteDatabase db) {
         db.execSQL(CREATE_INDEX_TRACE);
-        Log.d(TAG, "Created index on traces");
+        db.execSQL(CREATE_INDEX2_TRACE);
+        Log.d(TAG, "Created indexes on traces");
     }
 
 
@@ -174,6 +180,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Return a list of trips for the current user that have unsent traces in the traces table
+     * Does not include trips marked "live" (status=1). Those are only uploaded once finalized.
+     *
+     * @param vitalOnly Only include "important" unsent traces, to save data. (GPS only)
+     * @return list of Trips with traces marked as unsent in the database
+     */
+    public List<Trip> getTripsWithUnsentTraces(boolean vitalOnly) {
+        DriveSenseToken user = this.getCurrentUser();
+        String traceType = "";
+        if(vitalOnly) traceType = " and type='"+GsonSingleton.typeNameLookup.get(Trace.Trip.class)+"'";
+
+        String selectQuery = "SELECT " + TABLE_TRIP + ".* FROM "+TABLE_TRIP+" INNER JOIN "
+                +"(SELECT tripid FROM "+TABLE_TRACE+" WHERE synced=0 "+traceType+" GROUP BY tripid) as A "+
+                "ON " + TABLE_TRIP + ".`id`=`A`.`tripid`";
+        if(user == null) {
+            selectQuery += " WHERE email = ''";
+
+        } else {
+            selectQuery += " WHERE (email = '" + user.email + "' or email = '')";
+        }
+        selectQuery += "and status != 1";
+        List<Trip> trips = new ArrayList<Trip>();
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
+        cursor.moveToFirst();
+        if(cursor.getCount() == 0) {
+            return trips;
+        }
+        do {
+            Trip trip = constructTripByCursor(cursor);
+            trips.add(trip);
+        } while (cursor.moveToNext());
+        cursor.close();
+        return trips;
+    }
+
+    /**
      *
      * @param uuid
      * @param limit
@@ -183,9 +225,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<TraceMessage> getUnsentTraces(String uuid, int limit, boolean vitalOnly) {
         String typeQuery = "";
         if(vitalOnly) {
-            typeQuery = " and trace.type = '" + GsonSingleton.typeNameLookup.get(Trace.GPS.class)+"'";
+            typeQuery = " and trace.type = '" + GsonSingleton.typeNameLookup.get(Trace.Trip.class)+"'";
         }
-        String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
+        String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " INNER JOIN " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE trace.synced = 0"
                 + typeQuery+" and trip.uuid = '" + uuid +"' LIMIT "+limit;
         Cursor cursor = rdb.rawQuery(selectQuery, null);
@@ -202,7 +244,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return a list of trace, or gps points
      */
     public List<Trace.Trip> getGPSPoints(String uuid) {
-        String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " left join " + TABLE_TRACE
+        String selectQuery = "SELECT  " + TABLE_TRACE + ".* FROM " + TABLE_TRIP + " INNER JOIN " + TABLE_TRACE
                 + " on trace.tripid = trip.id WHERE type = '" + Trace.Trip.class.getSimpleName() + "' and trip.uuid = '" + uuid +"' ORDER BY id ASC";
         Cursor cursor = rdb.rawQuery(selectQuery, null);
         ArrayList<Trace.Trip> res = new ArrayList<>();
@@ -286,13 +328,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Trip> loadTrips(String whereClause) {
 
         DriveSenseToken user = this.getCurrentUser();
-        List<Trip> trips = new ArrayList<Trip>();
+        List<Trip> trips = new ArrayList<>();
         String selectQuery;
         if(user == null) {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = '"+"'";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE email = ''";
 
         } else {
-            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '"+"')";
+            selectQuery = "SELECT  * FROM " + TABLE_TRIP + " WHERE (email = '" + user.email + "' or email = '')";
         }
         if(whereClause != null)
             selectQuery += " and " + whereClause;
@@ -334,6 +376,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("lastname", token.lastname);
         values.put("dstoken", token.jwt);
         wdb.insert(TABLE_USER, null, values);
+
+        //Add the newly logged in user to all anonymous trips
+        ContentValues tripEmail = new ContentValues();
+        values.put("email", token.email);
+        wdb.update(TABLE_TRIP, tripEmail, "email=''", null);
     }
 
     public void userLogout() {
