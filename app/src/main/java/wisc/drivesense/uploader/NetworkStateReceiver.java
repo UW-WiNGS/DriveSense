@@ -7,8 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
-import wisc.drivesense.activity.MainActivity;
-
 public class NetworkStateReceiver extends BroadcastReceiver {
 
     private static String TAG = "NetworkStateReceiver";
@@ -23,19 +21,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
         if(isConnected) {
             Log.d(TAG, "Internet is Connected!");
-            if(MainActivity.isServiceRunning(context, UploaderService.class) == false) {
-                Log.d(TAG, "Start upload service!!!");
-                mUploaderIntent = new Intent(context, UploaderService.class);
-                context.startService(mUploaderIntent);
-            }
+            TripUploadRequest.Start(context);
         } else {
             Log.d(TAG, "Internet is Closed!");
-            //end uploading
-            if(MainActivity.isServiceRunning(context, UploaderService.class) == true) {
-                Log.d(TAG, "Stop upload service!!!");
-                context.stopService(mUploaderIntent);
-                mUploaderIntent = null;
-            }
         }
     }
 }

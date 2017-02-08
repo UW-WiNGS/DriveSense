@@ -1,8 +1,11 @@
 package wisc.drivesense.triprecorder;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import wisc.drivesense.activity.MainActivity;
@@ -12,35 +15,28 @@ public class ChargingStateReceiver extends BroadcastReceiver {
 
     private static String TAG = "ChargingStateReceiver";
     private static Intent mDrivingDetectionIntent = null;
-    @Override
-    public void onReceive(Context context, Intent intent) {
 
-        if(SettingActivity.isAutoMode(context) == false) {
+
+    @Override
+    public void onReceive(final Context context, Intent intent) {
+
+        if(SettingActivity.getAutoStart(context) == false) {
             return;
         }
 
         //check charging status, and start sensor service automatically
         String action = intent.getAction();
         mDrivingDetectionIntent = new Intent(context, TripService.class);
+        mDrivingDetectionIntent.putExtra(TripService.START_IMMEDIATELY, true);
 
-        if(action.equals(Intent.ACTION_POWER_CONNECTED)) {
-            // Do something when power connected
-            Log.d(TAG, "plugged");
-            if(MainActivity.isServiceRunning(context, TripService.class) == false) {
-                Log.d(TAG, "Start driving detection service!!!");
+        switch (action) {
+            case Intent.ACTION_POWER_CONNECTED:
+                // Do something when power connected
+                Log.d(TAG, "Plugged. Start driving detection service!!!");
                 context.startService(mDrivingDetectionIntent);
-            }
-        } else if(action.equals(Intent.ACTION_POWER_DISCONNECTED)) {
-            // Do something when power disconnected
-            Log.d(TAG, "unplugged");
-            if(MainActivity.isServiceRunning(context, TripService.class) == true) {
-                Log.d(TAG, "Stop driving detection service!!!");
-                context.stopService(mDrivingDetectionIntent);
-             }
-        } else {
-
+                break;
+            //power disconnect is received in the TripService
         }
-
     }
 
 

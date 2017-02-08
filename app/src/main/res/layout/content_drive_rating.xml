@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_map">
+    tools:showIn="@layout/activity_single_trip_view">
 
     <TextView
         android:id="@+id/display"
@@ -29,20 +29,14 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/display"
         android:layout_centerHorizontal="true"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:id="@+id/radioGroup">
         <RadioButton
             android:id="@+id/radioButtonSpeed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Speed"
             android:checked="true"
-            android:onClick="onRadioButtonClicked"
-            />
-        <RadioButton
-            android:id="@+id/radioButtonScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Score"
             android:onClick="onRadioButtonClicked"
             />
         <RadioButton
@@ -54,28 +48,58 @@
             />
     </RadioGroup>
 
-    <TextView
-        android:id="@+id/score"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/display"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Your Rating (out of 10.0):"
-        android:textSize="20sp" />
+        android:layout_below="@+id/radioGroup"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="14dp">
 
-    <TextView
-        android:id="@+id/rating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="0.0"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/score"
-        android:textSize="40sp"
-        android:textAlignment="center" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
+            <TextView
+                android:text="Duration:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:id="@+id/duration_display"
+                android:text="0:00"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="35sp" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:text="Total Distance:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textAlignment="viewEnd"/>
+
+            <TextView
+                android:id="@+id/distance_display"
+                android:text="0:00"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="35sp"
+                android:textAlignment="viewEnd"/>
+
+        </LinearLayout>
+    </LinearLayout>
 
 
 </RelativeLayout>

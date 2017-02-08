@@ -7,7 +7,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -22,12 +21,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.database.DatabaseHelper;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
-import wisc.drivesense.uploader.GsonRequest;
-import wisc.drivesense.uploader.RequestQueueSingleton;
+import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.utility.Constants;
 
 public class UserActivity extends AppCompatActivity {
@@ -37,7 +35,6 @@ public class UserActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        final AppCompatActivity self = this;
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_user);
@@ -49,8 +46,7 @@ public class UserActivity extends AppCompatActivity {
     }
 
     public void reland() {
-        DatabaseHelper dbH = new DatabaseHelper();
-        if(dbH.getCurrentUser() != null) {
+        if(DriveSenseApp.DBHelper().getCurrentUser() != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.activity_fragment_content, UserProfileFragment.newInstance())
                     .commit();
@@ -59,20 +55,12 @@ public class UserActivity extends AppCompatActivity {
                     .replace(R.id.activity_fragment_content, AuthLandingFragment.newInstance())
                     .commit();
         }
-        dbH.closeDatabase();
 
     }
 
     public void handleDrivesenseLogin(String driveSenseJWT) {
         DriveSenseToken dsToken = DriveSenseToken.InstantiateFromJWT(driveSenseJWT);
-        DatabaseHelper dbH = new DatabaseHelper();
-        if(dbH.hasUser(dsToken.email)) {
-            dbH.userLogin(dsToken.email);
-        } else {
-            dbH.newUser(dsToken.email, dsToken.firstname, dsToken.lastname);
-        }
-        dbH.closeDatabase();
-
+        DriveSenseApp.DBHelper().userLogin(dsToken);
         this.reland();
     }
 
@@ -89,21 +77,20 @@ public class UserActivity extends AppCompatActivity {
                     TokenLoginPayload tokenLogin = new TokenLoginPayload();
                     tokenLogin.access_token = fbtoken;
                     GsonRequest<LoginPayload> loginReq = new GsonRequest<LoginPayload>(Request.Method.POST, Constants.kFacebookSignInURL,
-                            tokenLogin, LoginPayload.class,
-                            new Response.Listener<LoginPayload>() {
-                                @Override
-                                public void onResponse(LoginPayload response) {
-                                    // Display the first 500 characters of the response string.
-                                    Log.d(TAG,"Got drivesense token: "+response.token);
-                                    handleDrivesenseLogin(response.token);
-                                }
-                            }, new Response.ErrorListener() {
+                            tokenLogin, LoginPayload.class) {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Toast.makeText(getApplicationContext(), "Facebook token authentication with Drivesense Failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), R.string.third_party_login_failed, Toast.LENGTH_SHORT).show();
                         }
-                    });
-                    RequestQueueSingleton.getInstance(getApplicationContext()).getRequestQueue().add(loginReq);
+
+                        @Override
+                        public void onResponse(LoginPayload response) {
+                            // Display the first 500 characters of the response string.
+                            Log.d(TAG,"Got drivesense token: "+response.token);
+                            handleDrivesenseLogin(response.token);
+                        }
+                    };
+                    DriveSenseApp.RequestQueue().add(loginReq);
                 }
 
                 @Override
@@ -139,7 +126,7 @@ public class UserActivity extends AppCompatActivity {
     }
 
     public void handleGoogleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "Google sign in result:" + result.isSuccess() + result.toString());
+        Log.d(TAG, "Google sign in result: " + result.isSuccess());
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
@@ -148,24 +135,23 @@ public class UserActivity extends AppCompatActivity {
             TokenLoginPayload tokenLogin = new TokenLoginPayload();
             tokenLogin.id_token = acct.getIdToken();
             GsonRequest<LoginPayload> loginReq = new GsonRequest<LoginPayload>(Request.Method.POST, Constants.kGoogleSignInURL,
-                    tokenLogin, LoginPayload.class,
-                    new Response.Listener<LoginPayload>() {
-                        @Override
-                        public void onResponse(LoginPayload response) {
-                            Log.d(TAG,"Got drivesense token: "+response.token);
-                            handleDrivesenseLogin(response.token);
-                        }
-                    }, new Response.ErrorListener() {
+                    tokenLogin, LoginPayload.class) {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(ctx, R.string.login_failed, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ctx, R.string.third_party_login_failed, Toast.LENGTH_SHORT).show();
                 }
-            });
+
+                @Override
+                public void onResponse(LoginPayload response) {
+                    Log.d(TAG,"Got drivesense token: "+response.token);
+                    handleDrivesenseLogin(response.token);
+                }
+            };
             // Add the request to the RequestQueue.
-            RequestQueueSingleton.getInstance(this).getRequestQueue().add(loginReq);
+            DriveSenseApp.RequestQueue().add(loginReq);
         } else {
             // Signed out, show unauthenticated UI.
-
+            Toast.makeText(this, R.string.google_login_fail, Toast.LENGTH_LONG).show();
         }
     }
 }

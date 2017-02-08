@@ -3,13 +3,12 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 25
     buildToolsVersion '25'
-
     defaultConfig {
         applicationId "wisc.drivesense"
         minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName '0.8'
     }
     buildTypes {
         release {
@@ -24,23 +23,37 @@ android {
         exclude 'META-INF/license'
         exclude 'META-INF/license.txt'
     }
+    productFlavors {
+    }
+}
+
+configurations {
+    all*.exclude group: 'com.google.firebase', module: 'firebase-core'
+    all*.exclude group: 'com.google.firebase', module: 'firebase-iid'
 }
 
 repositories {
     mavenCentral()
+    maven {
+        url uri('mint-plugin-repo-5.2.1')
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.0.0'
-    compile 'com.android.support:design:25.0.0'
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:design:25.1.0'
     compile 'com.android.volley:volley:1.0.0'
-    compile 'com.google.android.gms:play-services-maps:9.6.1'
-    compile 'com.google.android.gms:play-services-auth:9.6.1'
+    compile 'com.google.android.gms:play-services-maps:10.0.1'
+    compile 'com.google.android.gms:play-services-auth:10.0.1'
     compile 'io.jsonwebtoken:jjwt:0.7.0'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.android.support:support-v4:25.0.0'
+    compile 'com.google.code.gson:gson:2.4'
+    compile 'com.android.support:support-v4:25.1.0'
+    compile 'com.splunk:mint-android-sdk:5.2.1'
+    compile 'com.jakewharton:butterknife:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
 }
 
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'

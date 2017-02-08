@@ -11,14 +11,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.SignupPayload;
-import wisc.drivesense.uploader.GsonRequest;
-import wisc.drivesense.uploader.RequestQueueSingleton;
+import wisc.drivesense.httpPayloads.GsonRequest;
 import wisc.drivesense.utility.Constants;
 
 public class SignupFragment extends Fragment {
@@ -95,22 +93,21 @@ public class SignupFragment extends Fragment {
         signup.lastname = lastname;
 
         GsonRequest<SignupPayload> loginReq = new GsonRequest<SignupPayload>(Request.Method.POST, Constants.kSignUpURL,
-                signup, SignupPayload.class,
-                new Response.Listener<SignupPayload>() {
-                    @Override
-                    public void onResponse(SignupPayload response) {
-                        // Display the first 500 characters of the response string.
-                        Log.d(TAG,"Got a login token: " + response.token);
-                        ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
-                    }
-                }, new Response.ErrorListener() {
+                signup, SignupPayload.class) {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(self.getContext(), R.string.sign_up_error, Toast.LENGTH_SHORT).show();
             }
-        });
+
+            @Override
+            public void onResponse(SignupPayload response) {
+                // Display the first 500 characters of the response string.
+                Log.d(TAG,"Got a login token: " + response.token);
+                ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
+            }
+        };
         // Add the request to the RequestQueue.
-        RequestQueueSingleton.getInstance(this.getContext()).getRequestQueue().add(loginReq);
+        DriveSenseApp.RequestQueue().add(loginReq);
     }
 
 }

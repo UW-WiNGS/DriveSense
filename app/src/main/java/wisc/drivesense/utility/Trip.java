@@ -1,35 +1,48 @@
 package wisc.drivesense.utility;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by lkang on 3/29/16.
  */
 public class Trip implements Serializable {
 
+    public int id;
+    public UUID uuid = UUID.randomUUID();
     private long startTime_ = 0;
     private long endTime_ = 0;
     private double distance_ = 0; // in meter
     private double speed_ = 0.0;
     private double score_ = 10.0;
     private int status_ = 1;
-    private List<Trace> gps_;
-    private Trace start_ = null;
-    private Trace dest_ = new Trace();
+    private List<Trace.Trip> gps_;
     private double tilt_;
 
-    //private Rating rating = null;
+    //private RatingCalculation rating = null;
 
     private String TAG = "Trip";
 
-    //private DatabaseHelper dbHelper_ = null;
+    public Trip(int id, UUID uuid, long startTime, long endTime) {
+        this();
+        this.id = id;
+        this.uuid = uuid;
+        this.startTime_ = startTime;
+        this.endTime_ = endTime;
+    }
 
-    public Trip (long time) {
-        gps_ = new ArrayList<Trace>();
+    public Trip () {
+        this(System.currentTimeMillis());
+    }
+
+    private Trip(long time) {
+        gps_ = new ArrayList<Trace.Trip>();
         this.startTime_ = time;
-        //rating = new Rating(this);
+        this.endTime_ = time;
     }
 
     public void setScore(double score) {this.score_ = score;}
@@ -55,12 +68,16 @@ public class Trip implements Serializable {
     public int getStatus() {return this.status_;}
 
 
-    public Trace getStartPoint() {return start_;}
-    public Trace getEndPoint() {return dest_;}
-
-
-
-    public double getSpeed() {return speed_ * Constants.kMeterPSToMilePH;}
+    public LatLng getStartPoint() {
+        if(gps_ == null || gps_.size() < 1)
+            return null;
+        return new LatLng(gps_.get(0).lat, gps_.get(0).lng);
+    }
+    public LatLng getEndPoint() {
+        if(gps_ == null || gps_.size() < 1)
+            return null;
+        return new LatLng(gps_.get(gps_.size() - 1).lat, gps_.get(gps_.size() - 1).lng);
+    }
 
 
     /**
@@ -69,15 +86,9 @@ public class Trip implements Serializable {
      *
      * @param trace
      */
-    public void addGPS(Trace trace) {
-
-        gps_.add(trace);
-        if(start_ == null) {
-            start_ = new Trace();
-            start_.copyTrace(trace);
-        }
-        dest_.copyTrace(trace);
-        speed_ = trace.values[2];
+    public void addGPS(Trace.Trip trace) {
+        gps_.add((Trace.Trip)trace);
+        speed_ = trace.speed;
         this.endTime_ = trace.time;
 
         int sz = gps_.size();
@@ -89,33 +100,31 @@ public class Trip implements Serializable {
     }
 
 
-    public void setGPSPoints(List<Trace> gps) {
+    public void setGPSPoints(List<Trace.Trip> gps) {
         int sz = gps.size();
         if(sz == 0) {
             return;
         }
         this.gps_ = gps;
-        this.start_ = gps.get(0);
-        this.dest_ = gps.get(sz - 1);
     }
 
-    public List<Trace> getGPSPoints() {
+    public List<Trace.Trip> getGPSPoints() {
         return gps_;
     }
 
 
 
-    public static double distance(Trace gps0, Trace gps1) {
+    public static double distance(Trace.GPS gps0, Trace.GPS gps1) {
 
-        double lat1 = Math.toRadians(gps0.values[0]);
-        double lng1 = Math.toRadians(gps0.values[1]);
-        double lat2 = Math.toRadians(gps1.values[0]);
-        double lng2 = Math.toRadians(gps1.values[1]);
+        double lat1 = Math.toRadians(gps0.lat);
+        double lat2 = Math.toRadians(gps1.lat);
+        double dLat = Math.toRadians(gps1.lat - gps0.lat);
+        double dLon = Math.toRadians(gps1.lng - gps0.lng);
 
-        double p1 = Math.cos(lat1)*Math.cos(lat2)*Math.cos(lng1-lng2);
-        double p2 = Math.sin(lat1)*Math.sin(lat2);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double res = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        double res = Math.acos(p1 + p2);
         if(res< Constants.kSmallEPSILON || res!=res) {
             res = 0.0;
         }

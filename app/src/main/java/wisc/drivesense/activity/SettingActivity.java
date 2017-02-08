@@ -27,19 +27,53 @@ public class SettingActivity extends AppCompatActivity {
 
     }
 
-    public static boolean isAutoMode(Context context) {
+    public static boolean getAutoStart(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean cbValue = sharedPref.getBoolean("pref_auto", false);
-        return cbValue;
+        return sharedPref.getBoolean("pref_auto_start", context.getResources().getBoolean(R.bool.auto_start_default));
+    }
+
+    public static boolean getAutoStop(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("pref_auto_stop", context.getResources().getBoolean(R.bool.auto_stop_default));
+    }
+
+    public static boolean getEndTripAuto(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("end_trip_inactivity", context.getResources().getBoolean(R.bool.default_end_trip_inactivity));
     }
 
     public static boolean showMapWhileDriving(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean showMap = sharedPref.getBoolean("showMap", false);
-        return showMap;
+        return sharedPref.getBoolean("showMap", false);
     }
 
+    public static boolean getPauseWhenStationary(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("pause_when_stationary", context.getResources().getBoolean(R.bool.default_pause_stationary));
+    }
 
+    public static int getMinimumDistance(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        //minimum distance is in meters
+        int minDistance = Integer.parseInt(sharedPref.getString("minimum_distance", ""+context.getResources().getInteger(R.integer.default_minimum_distance)));
+        return minDistance;
+    }
+
+    public static boolean getMetricUnits(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean metric = sharedPref.getString("unit_type", "2").equals("1");
+        return metric;
+    }
+
+    /**
+     *
+     * @param context
+     * @return true if non-critical data should be restricted to WiFi
+     */
+    public static boolean getWifiOnly(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("wifi_only", true);
+    }
 
     public static class SettingsFragment extends PreferenceFragment {
         public void onCreate(Bundle savedInstanceState) {

@@ -14,7 +14,6 @@ public class DriveSenseToken {
     public String lastname;
     public String email;
     public Integer userid;
-
     public String jwt;
 
     public static DriveSenseToken InstantiateFromJWT(String jwtString) {
