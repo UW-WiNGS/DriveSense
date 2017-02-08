@@ -16,7 +16,7 @@ import com.android.volley.VolleyError;
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.SignupPayload;
-import wisc.drivesense.httpPayloads.GsonRequest;
+import wisc.drivesense.httpTools.GsonRequest;
 import wisc.drivesense.utility.Constants;
 
 public class SignupFragment extends Fragment {

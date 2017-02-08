@@ -23,7 +23,7 @@ import java.util.Locale;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.uploader.TripUploadRequest;
+import wisc.drivesense.httpTools.TripUploadRequest;
 import wisc.drivesense.utility.Trip;
 
 public class HistoryActivity extends FragmentActivity {

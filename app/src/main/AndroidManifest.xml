@@ -56,7 +56,7 @@
         <activity android:name=".activity.HistoryActivity" />
 
         <receiver
-            android:name=".uploader.NetworkStateReceiver"
+            android:name=".httpTools.NetworkStateReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

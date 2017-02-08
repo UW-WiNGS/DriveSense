@@ -1,4 +1,4 @@
-package wisc.drivesense.uploader;
+package wisc.drivesense.httpTools;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -10,15 +10,12 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 
 import java.util.List;
-import java.util.Set;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.activity.SettingActivity;
-import wisc.drivesense.httpPayloads.CompressedGSONRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
 import static wisc.drivesense.utility.Constants.kBatchUploadCount;

@@ -22,7 +22,7 @@ import wisc.drivesense.R;
 import wisc.drivesense.activity.MainActivity;
 import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.httpPayloads.TripPayload;
-import wisc.drivesense.uploader.TripUploadRequest;
+import wisc.drivesense.httpTools.TripUploadRequest;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.RatingCalculation;
