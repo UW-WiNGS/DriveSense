@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="wrap_content"
     >
-
+    <ImageView
+        android:id="@+id/synced_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_backup_black_24dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:tint="@color/cardview_light_background"
+         />
     <TextView
         android:id="@+id/start_date"
         android:text="start date"
@@ -12,8 +22,8 @@
         android:textSize="20sp"
         android:paddingTop="10dp"
         android:paddingBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@id/synced_status"
         />
 
     <TextView
@@ -51,6 +61,7 @@
         android:layout_below="@id/duration"
         android:layout_alignLeft="@id/duration"
         />
+
 
 
 

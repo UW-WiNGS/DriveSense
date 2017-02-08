@@ -22,10 +22,11 @@ public class Trip implements Serializable {
     private int status_ = 1;
     private List<Trace.Trip> gps_;
     private double tilt_;
+    private boolean synced_;
 
     //private RatingCalculation rating = null;
 
-    private String TAG = "Trip";
+    private static final String TAG = "Trip";
 
     public Trip(int id, UUID uuid, long startTime, long endTime) {
         this();
@@ -66,6 +67,9 @@ public class Trip implements Serializable {
     public double getScore() {return this.score_;}
     public long getDuration() {return this.endTime_ - this.startTime_;}
     public int getStatus() {return this.status_;}
+
+    public boolean getSynced(){ return this.synced_; }
+    public void setSynced(boolean val){synced_=val;}
 
 
     public LatLng getStartPoint() {

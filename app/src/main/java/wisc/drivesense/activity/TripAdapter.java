@@ -1,10 +1,12 @@
 package wisc.drivesense.activity;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -12,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import butterknife.BindView;
 import wisc.drivesense.R;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
@@ -43,6 +46,7 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         TextView tvStartTime = (TextView) convertView.findViewById(R.id.start_time);
         TextView tvDuration = (TextView) convertView.findViewById(R.id.duration);
         TextView tvDistance = (TextView) convertView.findViewById(R.id.distance_driven_unit);
+        ImageView ivSynced = (ImageView) convertView.findViewById(R.id.synced_status);
 
         long start = trip.getStartTime();
         Date starting = new Date(start);
@@ -62,6 +66,12 @@ public class TripAdapter extends ArrayAdapter<Trip> {
         Units.userFacingDouble distance = Units.largeDistance(trip.getDistance(), metricUnits);
         tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
 
+        if(trip.getSynced())
+        {
+            ivSynced.setColorFilter(Color.argb(255, 0, 255, 0));
+        } else {
+            ivSynced.setColorFilter(Color.argb(255, 255, 0, 0));
+        }
 
         return convertView;
     }

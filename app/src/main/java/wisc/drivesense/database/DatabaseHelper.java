@@ -263,11 +263,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         double dist = cursor.getDouble(4);
         double score = cursor.getDouble(5);
         int status = cursor.getInt(6);
+        boolean synced = cursor.getInt(7)!=0;
         Trip trip = new Trip(id, UUID.fromString(uuid), stime, etime);
         trip.setScore(score);
         trip.setStatus(status);
         trip.setEndTime(etime);
         trip.setDistance(dist);
+        trip.setSynced(synced);
         return trip;
     }
 
