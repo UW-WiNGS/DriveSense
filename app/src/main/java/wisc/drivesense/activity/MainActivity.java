@@ -30,6 +30,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.triprecorder.TripService;
@@ -47,13 +49,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = "MainActivity";
     private MapViewFragment mapFragment;
-    private TextView tvSpeed = null;
-    private TextView tvSpeedUnit = null;
-    private TextView tvTotalDistance = null;
-    private TextView tvTotalDistanceUnit = null;
-    private TextView tvTilt = null;
-    private TextView tvElapsed = null;
-    private Button btnStart = null;
+    @BindView(R.id.speed_display) TextView tvSpeed;
+    @BindView(R.id.speed_unit) TextView tvSpeedUnit;
+    @BindView(R.id.distance_driven) TextView tvTotalDistance;
+    @BindView(R.id.distance_driven_unit) TextView tvTotalDistanceUnit;
+    @BindView(R.id.texttilt) TextView tvTilt;
+    @BindView(R.id.elapsedtime) TextView tvElapsed;
+    @BindView(R.id.btnstart) Button btnStart;
     private ServiceConnection mTripConnection = null;
     private TripService boundTripService = null;
     private boolean displayingMap = false;
@@ -102,17 +104,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1001);
         }
 
-
-        // Initializing Facebook Integration
-
-        tvSpeed = (TextView) findViewById(R.id.speed_display);
-        tvSpeedUnit = (TextView) findViewById(R.id.speed_unit);
-        tvTotalDistance = (TextView) findViewById(R.id.distance_driven);
-        tvTotalDistanceUnit = (TextView) findViewById(R.id.distance_driven_unit);
-        tvTilt = (TextView) findViewById(R.id.texttilt);
-        btnStart = (Button) findViewById(R.id.btnstart);
-        tvElapsed = (TextView) findViewById(R.id.elapsedtime);
-
+        ButterKnife.bind(this);
         //tvTilt.setVisibility(View.VISIBLE);
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.maintoolbar);

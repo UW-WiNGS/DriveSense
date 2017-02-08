@@ -29,6 +29,11 @@
             android:title="Show Driving Score (Experimental)"
             android:key="showScore"
             android:persistent="false" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:title="Conserve Cellular Data"
+            android:key="wifi_only"
+            android:summary="Only allow GPS to be uploaded over 4G. Other data will be restricted to WiFi." />
     </PreferenceCategory>
     <PreferenceCategory android:title="Recording Settings">
 

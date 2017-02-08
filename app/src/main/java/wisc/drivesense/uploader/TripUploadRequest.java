@@ -10,8 +10,10 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 
 import java.util.List;
+import java.util.Set;
 
 import wisc.drivesense.DriveSenseApp;
+import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.httpPayloads.CompressedGSONRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
@@ -57,7 +59,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
      */
     public static synchronized void Start(Context context) {
         if(!running && context != null) {
-            boolean wifi = wifiConnected(context);
+            boolean wifi = wifiConnected(context) || !SettingActivity.getWifiOnly(context);
 
             //create a list of trips with either unsynced metadata or unsent traces.
             List<Trip> trips = DriveSenseApp.DBHelper().loadTrips("synced = 0 and status != 1");

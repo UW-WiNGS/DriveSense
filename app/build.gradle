@@ -52,6 +52,8 @@ dependencies {
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.android.support:support-v4:25.1.0'
     compile 'com.splunk:mint-android-sdk:5.2.1'
+    compile 'com.jakewharton:butterknife:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
 }
 
 //apply plugin: 'com.google.gms.google-services'

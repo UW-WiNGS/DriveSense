@@ -65,6 +65,16 @@ public class SettingActivity extends AppCompatActivity {
         return metric;
     }
 
+    /**
+     *
+     * @param context
+     * @return true if non-critical data should be restricted to WiFi
+     */
+    public static boolean getWifiOnly(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean("wifi_only", true);
+    }
+
     public static class SettingsFragment extends PreferenceFragment {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
