@@ -12,11 +12,8 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
-import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -93,7 +90,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void insertTrip(Trip trip) {
         Gson gson = new Gson();
         ContentValues values = new ContentValues();
-        values.put("uuid", trip.uuid.toString());
+        values.put("uuid", trip.guid.toString());
         values.put("starttime", trip.getStartTime());
         values.put("endtime", trip.getEndTime());
         values.put("distance", trip.getDistance());
@@ -118,7 +115,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * @return List of the row IDs of the inserted objects in the order they were given
      * @throws Exception
      */
-    public long[] insertSensorData(String tripUUID, ArrayList<TraceMessage> tmList) throws Exception {
+    public long[] insertSensorData(String tripUUID, List<TraceMessage> tmList) throws Exception {
         long[] insertIDs = new long[tmList.size()];
         String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
         Cursor cursor = rdb.rawQuery(selectQuery, null);
@@ -264,7 +261,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         double score = cursor.getDouble(5);
         int status = cursor.getInt(6);
         boolean synced = cursor.getInt(7)!=0;
-        Trip trip = new Trip(id, UUID.fromString(uuid), stime, etime);
+        Trip trip = new Trip(id, uuid, stime, etime);
         trip.setScore(score);
         trip.setStatus(status);
         trip.setEndTime(etime);
@@ -305,7 +302,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Finalize the trip with uuid if it's not null otherwise finalize all
+     * Finalize the trip with guid if it's not null otherwise finalize all
      * trips.
      */
     public void finalizeTrips() {
@@ -315,6 +312,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.update(TABLE_TRIP, values, "status = 1", null);
     }
 
+    /**
+     * Update a trip in the database with all values in a Trip object
+     * @param trip Values to overwrite database row with. Cannot be sparse.
+     */
     public void updateTrip(Trip trip) {
         ContentValues values = new ContentValues();
         values.put("starttime", trip.getStartTime());
@@ -323,7 +324,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("score", trip.getScore());
         values.put("distance", trip.getDistance());
         values.put("status", trip.getStatus());
-        wdb.update(TABLE_TRIP, values, "uuid='" + trip.uuid + "'", null);
+        wdb.update(TABLE_TRIP, values, "uuid='" + trip.guid + "'", null);
     }
 
     public List<Trip> loadTrips() { return this.loadTrips(null); }

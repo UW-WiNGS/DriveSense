@@ -7,7 +7,7 @@
     tools:context="wisc.drivesense.activity.HistoryActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/historytoolbar"
+        android:id="@+id/history_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/main_activity_background"
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/history_search_view"
-        android:layout_below="@id/historytoolbar">
+        android:layout_below="@id/history_toolbar">
     <android.support.v4.view.PagerTitleStrip
         android:id="@+id/pager_title_strip"
         android:layout_width="match_parent"

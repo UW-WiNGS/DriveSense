@@ -32,8 +32,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
@@ -70,7 +68,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         pbLoadingSpinner = (ProgressBar) findViewById(R.id.mapLoadingSpinner);
 
         Intent intent = getIntent();
-        String uuid = intent.getStringExtra("uuid");
+        String uuid = intent.getStringExtra("guid");
         trip_ = DriveSenseApp.DBHelper().getTrip(uuid);
 
         if(trip_ == null) {
@@ -89,7 +87,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
             }
         });
 
-        new AsyncTripLoader().execute(trip_.uuid);
+        new AsyncTripLoader().execute(trip_.guid);
 
         long duration = trip_.getDuration();
         tvDuration.setText(Units.displayTimeInterval(duration));
@@ -101,13 +99,13 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
     }
 
-    private class AsyncTripLoader extends AsyncTask<UUID, Void, List<Trace.Trip>> {
-        protected List<Trace.Trip> doInBackground(UUID ... uuids) {
+    private class AsyncTripLoader extends AsyncTask<String, Void, List<Trace.Trip>> {
+        protected List<Trace.Trip> doInBackground(String ... uuids) {
             int count = uuids.length;
             if(count!=1)
                 return null;
 
-            String uuid = uuids[0].toString();
+            String uuid = uuids[0];
             List<Trace.Trip> points = DriveSenseApp.DBHelper().getGPSPoints(uuid);
             return points;
         }

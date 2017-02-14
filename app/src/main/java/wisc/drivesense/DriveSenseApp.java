@@ -9,6 +9,8 @@ import com.android.volley.toolbox.Volley;
 import com.splunk.mint.Mint;
 
 import wisc.drivesense.database.DatabaseHelper;
+import wisc.drivesense.httpTools.TripTraceDownloadRequest;
+import wisc.drivesense.httpTools.TripUpdateRequest;
 import wisc.drivesense.httpTools.TripUploadRequest;
 
 /**
@@ -35,6 +37,9 @@ public class DriveSenseApp extends Application {
 
                 // Attempt to upload any unsent trips
                 TripUploadRequest.Start(context);
+                TripUpdateRequest update = new TripUpdateRequest(DBHelper().getCurrentUser());
+                RequestQueue().add(update);
+                //TripTraceDownloadRequest.Start("d8fc9fbc-f552-4267-aab3-d52d29afaef8", context);
                 return null;
             }
         }.execute();
