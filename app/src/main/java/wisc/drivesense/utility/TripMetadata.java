@@ -12,4 +12,9 @@ public class TripMetadata {
     public String guid;
     public Integer status; // 0 = deleted, 1 = live, 2 = finalized
     public Double distance; // in meter
+
+    public static final int LIVE = 1;
+    public static final int DELETED = 0;
+    public static final int FINALIZED = 2;
+
 }

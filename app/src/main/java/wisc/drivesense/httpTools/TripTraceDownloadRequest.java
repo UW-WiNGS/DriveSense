@@ -25,23 +25,21 @@ import wisc.drivesense.utility.TraceMessage;
  */
 
 public class TripTraceDownloadRequest extends GsonRequest<List<Trace.Trip>> {
-    private Context context;
     private static volatile boolean running = false;
     private String uuid;
     private static final Type responseType = new TypeToken<List<Trace.Trip>>(){}.getType();
 
-    private TripTraceDownloadRequest(String url, TraceRequest body, DriveSenseToken dsToken, Context context) {
+    private TripTraceDownloadRequest(String url, TraceRequest body, DriveSenseToken dsToken) {
         super(Method.POST, url, body, responseType, dsToken);
-        this.context = context.getApplicationContext();
         uuid = body.guid;
     }
 
-    public static synchronized void Start(String uuid, Context context) {
+    public static synchronized void Start(String uuid) {
         if(!running) {
             DriveSenseToken user = DriveSenseApp.DBHelper().getCurrentUser();
             TraceRequest body = new TraceRequest(uuid, Trace.Trip.class);
 
-            TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, body, user, context);
+            TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, body, user);
             DriveSenseApp.RequestQueue().add(currentRequest);
         }
     }
