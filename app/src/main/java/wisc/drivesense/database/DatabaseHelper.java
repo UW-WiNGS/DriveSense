@@ -18,6 +18,7 @@ import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
+import wisc.drivesense.utility.TripMetadata;
 
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -310,6 +311,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put("status", 2);
         wdb.update(TABLE_TRIP, values, "status = 1", null);
+    }
+
+    /**
+     * Update a trip row using the sparse object trip. Does not set synced to false.
+     * (Used to update trips when recieved from the server)
+     * @param trip Members of this object that are null will not be updated in the DB
+     */
+    public void updateTrip(TripMetadata trip) {
+        if(trip.guid == null){
+            throw new Error("Trip guid was not specified");
+        }
+        ContentValues values = new ContentValues();
+        if(trip.distance != null) values.put("distance", trip.distance);
+        if(trip.status != null) values.put("status", trip.status);
+        wdb.update(TABLE_TRIP, values, "uuid='" + trip.guid + "'", null);
     }
 
     /**

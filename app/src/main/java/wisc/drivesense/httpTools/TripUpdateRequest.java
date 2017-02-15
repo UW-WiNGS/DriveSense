@@ -29,15 +29,19 @@ public class TripUpdateRequest extends GsonRequest<List<TripMetadata>> {
 
     @Override
     public void onResponse(List<TripMetadata> response) {
-        for (TripMetadata trip : response) {
-            Trip currentTrip = DriveSenseApp.DBHelper().getTrip(trip.guid);
-            if(currentTrip == null && trip.status == TripMetadata.FINALIZED) {
-                //download the traces for the trip
-                Log.d(TAG, "Download traces for trip: "+ trip.guid);
-                //TripTraceDownloadRequest.Start(trip.guid);
-            } else if(currentTrip.getSynced() == true) {
-                //TODO: Update from response
-            } //otherwise do nothing if the trip is not synced
+        for (TripMetadata tripResp : response) {
+            //only store trips locally if they are not live
+            if(tripResp.status != TripMetadata.LIVE) {
+                Trip currentTrip = DriveSenseApp.DBHelper().getTrip(tripResp.guid);
+                if (currentTrip == null && tripResp.status == TripMetadata.FINALIZED) {
+                    //download the traces for the trip
+                    //Log.d(TAG, "Download traces for trip: " + tripResp.guid);
+                    //TripTraceDownloadRequest.Start(trip.guid);
+                } else if (currentTrip != null && currentTrip.getSynced() == true) {
+                    DriveSenseApp.DBHelper().updateTrip(tripResp);
+                    Log.d(TAG, "Updated trip " + tripResp.guid + " in the database.");
+                } //otherwise do nothing if the trip is not synced
+            }
         }
     }
 
