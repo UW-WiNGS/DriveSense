@@ -66,7 +66,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
             if(trips.size() == 0) return;
             TripPayload payload = new TripPayload();
             Trip trip = trips.get(0);
-            payload.guid = trip.uuid.toString();
+            payload.guid = trip.guid.toString();
             payload.distance = trip.getDistance();
             payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid, kBatchUploadCount, !wifi);
             payload.status = trip.getStatus();

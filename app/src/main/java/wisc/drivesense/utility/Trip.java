@@ -2,7 +2,6 @@ package wisc.drivesense.utility;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -10,28 +9,24 @@ import java.util.UUID;
 /**
  * Created by lkang on 3/29/16.
  */
-public class Trip implements Serializable {
+public class Trip extends TripMetadata {
 
     public int id;
-    public UUID uuid = UUID.randomUUID();
     private long startTime_ = 0;
     private long endTime_ = 0;
-    private double distance_ = 0; // in meter
-    private double speed_ = 0.0;
+
     private double score_ = 10.0;
-    private int status_ = 1;
+
     private List<Trace.Trip> gps_;
     private double tilt_;
     private boolean synced_;
 
-    //private RatingCalculation rating = null;
-
     private static final String TAG = "Trip";
 
-    public Trip(int id, UUID uuid, long startTime, long endTime) {
+    public Trip(int id, String uuid, long startTime, long endTime) {
         this();
         this.id = id;
-        this.uuid = uuid;
+        this.guid = uuid;
         this.startTime_ = startTime;
         this.endTime_ = endTime;
     }
@@ -41,20 +36,23 @@ public class Trip implements Serializable {
     }
 
     private Trip(long time) {
+        super();
+        guid = UUID.randomUUID().toString();
+        status = 1;
+        distance = 0.0;
         gps_ = new ArrayList<Trace.Trip>();
         this.startTime_ = time;
         this.endTime_ = time;
     }
 
     public void setScore(double score) {this.score_ = score;}
-    public void setStatus(int status) {this.status_ = status;}
+    public void setStatus(int status) {this.status = status;}
     public void setEndTime(long time) {this.endTime_ = time;}
-    public void setDistance(double dist) {this.distance_ = dist;}
-
+    public void setDistance(double dist) {this.distance = dist;}
+    public void setSynced(boolean val){synced_=val;}
     public void setTilt(double tilt) {this.tilt_ = tilt;}
+
     public double getTilt() {return this.tilt_;}
-
-
     public long getStartTime() {
         return this.startTime_;
     }
@@ -62,14 +60,12 @@ public class Trip implements Serializable {
         return this.endTime_;
     }
     public double getDistance() {
-        return this.distance_;
+        return this.distance;
     }
     public double getScore() {return this.score_;}
     public long getDuration() {return this.endTime_ - this.startTime_;}
-    public int getStatus() {return this.status_;}
-
+    public int getStatus() {return this.status;}
     public boolean getSynced(){ return this.synced_; }
-    public void setSynced(boolean val){synced_=val;}
 
 
     public LatLng getStartPoint() {
@@ -92,12 +88,11 @@ public class Trip implements Serializable {
      */
     public void addGPS(Trace.Trip trace) {
         gps_.add((Trace.Trip)trace);
-        speed_ = trace.speed;
         this.endTime_ = trace.time;
 
         int sz = gps_.size();
         if(sz >= 2) {
-            distance_ += distance(gps_.get(sz - 2), gps_.get(sz - 1));
+            this.distance += distance(gps_.get(sz - 2), gps_.get(sz - 1));
             //keep it to be just last two locations
             gps_.remove(0);
         }

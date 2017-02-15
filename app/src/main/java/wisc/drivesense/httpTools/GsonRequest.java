@@ -13,6 +13,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,19 +27,22 @@ import wisc.drivesense.utility.GsonSingleton;
 public abstract class GsonRequest<T> extends Request<T> implements Response.Listener<T>, Response.ErrorListener {
     protected Object payload;
     final String TAG = "GsonRequest";
-    private final Class<T> responseClass;
+    private final Type responseType;
     protected DriveSenseToken dsToken = null;
 
-    public GsonRequest(int method, String url, Object body, Class<T> responseClass, DriveSenseToken dsToken) {
-        this(method, url, body, responseClass);
-        this.dsToken = dsToken;
-    }
-
-    public GsonRequest(int method, String url, Object body, Class<T> responseClass) {
+    public GsonRequest(int method, String url, Object body, Type responseType, DriveSenseToken dsToken) {
         super(method, url, null);
         payload = body;
-        this.responseClass = responseClass;
+        this.responseType = responseType;
         this.setRetryPolicy(new DefaultRetryPolicy(10000, 0, 0));
+        this.dsToken = dsToken;
+    }
+    public GsonRequest(int method, String url, Object body, Class<T> responseType, DriveSenseToken dsToken) {
+        this(method, url, body, (Type)responseType, dsToken);
+    }
+
+    public GsonRequest(int method, String url, Object body, Class<T> responseType) {
+        this(method,url, body, (Type)responseType, null);
     }
 
     public String getBodyContentType()
@@ -78,7 +82,7 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
     protected Response<T> parseNetworkResponse(NetworkResponse response) {
         try {
             String json = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
-            return Response.success(GsonSingleton.fromJson(json, responseClass),
+            return (Response<T>)Response.success(GsonSingleton.fromJson(json, responseType),
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {
             return Response.error(new ParseError(e));

@@ -28,7 +28,6 @@ import android.widget.TextView;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -366,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
         Trip lastTrip = DriveSenseApp.DBHelper().getLastTrip();
         if(lastTrip != null && lastTrip.getStatus() == 2) {
             Intent intent = new Intent(this, TripViewActivity.class);
-            intent.putExtra("uuid", lastTrip.uuid.toString());
+            intent.putExtra("guid", lastTrip.guid.toString());
             startActivity(intent);
         } else {
             Log.d(TAG, "Tried to show a trip, but it was null or deleted.");

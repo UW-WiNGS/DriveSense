@@ -27,6 +27,8 @@ public class Constants {
     private static final String kDomain = "http://drivesensetest.wirover.com:8000";
 
     public static final String kTripURL = kDomain + "/updateTrip";
+    public static final String kTripTracesURL = kDomain + "/tripTraces";
+    public static final String kAllTripsURL = kDomain + "/allTrips";
 
     public static final String kSignInURL = kDomain + "/auth/signin";
     public static final String kSignUpURL = kDomain + "/auth/signup";

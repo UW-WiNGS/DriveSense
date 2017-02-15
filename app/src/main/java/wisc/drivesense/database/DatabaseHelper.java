@@ -12,15 +12,13 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
-import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.Trip;
+import wisc.drivesense.utility.TripMetadata;
 
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -30,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Version
     private static final String DATABASE_NAME = "drivesense.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table Names
     private static final String TABLE_USER = "user";
@@ -61,7 +59,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private  SQLiteDatabase rdb;
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, 1);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
         wdb = this.getWritableDatabase();
         rdb = this.getReadableDatabase();
     }
@@ -77,6 +75,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(TAG, "Dropping tables for upgrade");
         db.execSQL(DROP_TABLE+TABLE_TRACE+";");
         db.execSQL(DROP_TABLE+TABLE_TRIP+";");
         db.execSQL(DROP_TABLE+TABLE_USER+";");
@@ -90,10 +89,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Insert a trip download from the server and all of its traces in one single transaction.
+     * If any parts fails, the whole thing will be rolled back.
+     * @param trip
+     * @param tmList
+     */
+    public void insertTripAndTraces(TripMetadata trip, List<TraceMessage> tmList) {
+        wdb.beginTransaction();
+        ContentValues values = new ContentValues();
+        values.put("uuid", trip.guid.toString());
+        //TODO: Starttime and endtime should be optionally stored. Only needed when custom values are set
+        if(tmList.size() > 0){
+            values.put("starttime", tmList.get(0).value.time);
+            values.put("endtime", tmList.get(tmList.size()-1).value.time);
+        }
+
+        values.put("distance", trip.distance);
+        values.put("status", trip.status);
+        values.put("synced", 1);
+        DriveSenseToken user = this.getCurrentUser();
+        if(user != null) {
+            values.put("email", user.email);
+        }
+        wdb.insert(TABLE_TRIP, null, values);
+
+        try {
+            insertSensorData(trip.guid, tmList, true);
+            wdb.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "Something went wrong inserting traces for a downloaded trip. Rolling back.");
+        }
+        wdb.endTransaction();
+    }
+
     public void insertTrip(Trip trip) {
         Gson gson = new Gson();
         ContentValues values = new ContentValues();
-        values.put("uuid", trip.uuid.toString());
+        values.put("uuid", trip.guid.toString());
         values.put("starttime", trip.getStartTime());
         values.put("endtime", trip.getEndTime());
         values.put("distance", trip.getDistance());
@@ -115,10 +149,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Insert a list of TraceMessages in a bulk transaction to improve efficiency considerably
      * @param tripUUID UUID of the trip.
      * @param tmList Trace messages to insert
+     * @param synced Set to true for rows that already exist on the server (i.e. recently downloaded)
      * @return List of the row IDs of the inserted objects in the order they were given
      * @throws Exception
      */
-    public long[] insertSensorData(String tripUUID, ArrayList<TraceMessage> tmList) throws Exception {
+    public long[] insertSensorData(String tripUUID, List<TraceMessage> tmList, boolean synced) throws Exception {
         long[] insertIDs = new long[tmList.size()];
         String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
         Cursor cursor = rdb.rawQuery(selectQuery, null);
@@ -131,7 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         for (int i = 0; i < tmList.size(); i++) {
             TraceMessage tm = tmList.get(i);
             ContentValues values = new ContentValues();
-            values.put("synced", false);
+            values.put("synced", synced);
             values.put("value", GsonSingleton.toJson(tm));
             values.put("type", tm.type);
             values.put("tripid", tripID);
@@ -264,7 +299,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         double score = cursor.getDouble(5);
         int status = cursor.getInt(6);
         boolean synced = cursor.getInt(7)!=0;
-        Trip trip = new Trip(id, UUID.fromString(uuid), stime, etime);
+        Trip trip = new Trip(id, uuid, stime, etime);
         trip.setScore(score);
         trip.setStatus(status);
         trip.setEndTime(etime);
@@ -305,7 +340,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Finalize the trip with uuid if it's not null otherwise finalize all
+     * Finalize the trip with guid if it's not null otherwise finalize all
      * trips.
      */
     public void finalizeTrips() {
@@ -315,6 +350,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.update(TABLE_TRIP, values, "status = 1", null);
     }
 
+    /**
+     * Update a trip row using the sparse object trip. Does not set synced to false.
+     * (Used to update trips when recieved from the server)
+     * @param trip Members of this object that are null will not be updated in the DB
+     */
+    public void updateTrip(TripMetadata trip) {
+        if(trip.guid == null){
+            throw new Error("Trip guid was not specified");
+        }
+        ContentValues values = new ContentValues();
+        if(trip.distance != null) values.put("distance", trip.distance);
+        if(trip.status != null) values.put("status", trip.status);
+        wdb.update(TABLE_TRIP, values, "uuid='" + trip.guid + "'", null);
+    }
+
+    /**
+     * Update a trip in the database with all values in a Trip object
+     * @param trip Values to overwrite database row with. Cannot be sparse.
+     */
     public void updateTrip(Trip trip) {
         ContentValues values = new ContentValues();
         values.put("starttime", trip.getStartTime());
@@ -323,7 +377,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put("score", trip.getScore());
         values.put("distance", trip.getDistance());
         values.put("status", trip.getStatus());
-        wdb.update(TABLE_TRIP, values, "uuid='" + trip.uuid + "'", null);
+        wdb.update(TABLE_TRIP, values, "uuid='" + trip.guid + "'", null);
     }
 
     public List<Trip> loadTrips() { return this.loadTrips(null); }
@@ -381,7 +435,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         //Add the newly logged in user to all anonymous trips
         ContentValues tripEmail = new ContentValues();
-        values.put("email", token.email);
+        tripEmail.put("email", token.email);
         wdb.update(TABLE_TRIP, tripEmail, "email=''", null);
     }
 

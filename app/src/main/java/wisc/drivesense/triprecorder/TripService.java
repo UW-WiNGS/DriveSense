@@ -66,10 +66,10 @@ public class TripService extends Service {
             //Null intent means the service was killed and is being restarted by android
             curtrip_ = DriveSenseApp.DBHelper().getLastTrip();
             if(curtrip_!=null) {
-                List<Trace.Trip> points_ = DriveSenseApp.DBHelper().getGPSPoints(curtrip_.uuid.toString());
+                List<Trace.Trip> points_ = DriveSenseApp.DBHelper().getGPSPoints(curtrip_.guid.toString());
                 curtrip_.setGPSPoints(points_);
                 Log.d(TAG, "Trip distance: "+curtrip_.getDistance() + " gps length: "+curtrip_.getGPSPoints().size());
-                Log.d(TAG, "Restart driving detection service after being killed by android. UUID: "+curtrip_.uuid);
+                Log.d(TAG, "Restart driving detection service after being killed by android. UUID: "+curtrip_.guid);
 
                 startRecording();
             } else {
@@ -115,11 +115,11 @@ public class TripService extends Service {
         lastSpeedNonzero = 0;
         stoprecording = false;
 
-        Log.d(TAG, "Start driving detection service. UUID: "+curtrip_.uuid);
+        Log.d(TAG, "Start driving detection service. UUID: "+curtrip_.guid);
         Toast.makeText(this, "Trip recording service starting in background.", Toast.LENGTH_SHORT).show();
         user = DriveSenseApp.DBHelper().getCurrentUser();
 
-        tsw = new TraceStorageWorker(curtrip_.uuid.toString(), this);
+        tsw = new TraceStorageWorker(curtrip_.guid.toString(), this);
         tsw.start();
 
         tiltCalc = new RealTimeTiltCalculation();
@@ -300,7 +300,7 @@ public class TripService extends Service {
                 try {
                     ArrayList<TraceMessage> tmList = new ArrayList<>(traces.size());
                     traces.drainTo(tmList);
-                    long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList);
+                    long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList, false);
                     for (int i = 0; i < tmList.size(); i++) {
                         TraceMessage tm = tmList.get(i);
                         tm.rowid = rowids[i];
