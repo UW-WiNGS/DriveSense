@@ -1,6 +1,7 @@
 package wisc.drivesense.httpTools;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -19,6 +20,7 @@ import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
+import wisc.drivesense.utility.TripMetadata;
 
 /**
  * Created by peter on 2/8/17.
@@ -26,41 +28,49 @@ import wisc.drivesense.utility.TraceMessage;
 
 public class TripTraceDownloadRequest extends GsonRequest<List<Trace.Trip>> {
     private static volatile boolean running = false;
-    private String uuid;
+    private TripMetadata trip;
     private static final Type responseType = new TypeToken<List<Trace.Trip>>(){}.getType();
 
-    private TripTraceDownloadRequest(String url, TraceRequest body, DriveSenseToken dsToken) {
-        super(Method.POST, url, body, responseType, dsToken);
-        uuid = body.guid;
+    private TripTraceDownloadRequest(String url, TripMetadata trip, DriveSenseToken dsToken) {
+        super(Method.POST, url, new TraceRequest(trip.guid, Trace.Trip.class), responseType, dsToken);
+        this.trip = trip;
     }
 
-    public static synchronized void Start(String uuid) {
+    public static synchronized void Start(TripMetadata trip) {
         if(!running) {
             DriveSenseToken user = DriveSenseApp.DBHelper().getCurrentUser();
-            TraceRequest body = new TraceRequest(uuid, Trace.Trip.class);
 
-            TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, body, user);
+            TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, trip, user);
             DriveSenseApp.RequestQueue().add(currentRequest);
         }
     }
 
     @Override
     public void onErrorResponse(VolleyError error) {
-        Log.d(TAG, "Downloading traces for trip "+uuid+" failed. "+error.toString());
+        Log.d(TAG, "Downloading traces for trip "+trip.guid+" failed. "+error.toString());
     }
 
     @Override
-    public void onResponse(List<Trace.Trip> response) {
-        Log.d(TAG, response.toString());
-        List<TraceMessage> tmList = new ArrayList<>(response.size());
-        for (int i = 0; i < response.size(); i++) {
-            tmList.add(new TraceMessage(response.get(i)));
-        }
-        try {
-            DriveSenseApp.DBHelper().insertSensorData(uuid, tmList);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void onResponse(final List<Trace.Trip> response) {
+        //Log.d(TAG, response.toString());
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                List<TraceMessage> tmList = new ArrayList<>(response.size());
+                for (int i = 0; i < response.size(); i++) {
+                    tmList.add(new TraceMessage(response.get(i)));
+                }
+                try {
+                    Log.d(TAG, "Inserting trip and traces for "+trip.guid);
+                    DriveSenseApp.DBHelper().insertTripAndTraces(trip, tmList);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null);
+
     }
 
     private static class TraceRequest {

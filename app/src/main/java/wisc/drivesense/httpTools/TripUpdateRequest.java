@@ -1,5 +1,6 @@
 package wisc.drivesense.httpTools;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.android.volley.VolleyError;
@@ -29,20 +30,26 @@ public class TripUpdateRequest extends GsonRequest<List<TripMetadata>> {
 
     @Override
     public void onResponse(List<TripMetadata> response) {
-        for (TripMetadata tripResp : response) {
-            //only store trips locally if they are not live
-            if(tripResp.status != TripMetadata.LIVE) {
-                Trip currentTrip = DriveSenseApp.DBHelper().getTrip(tripResp.guid);
-                if (currentTrip == null && tripResp.status == TripMetadata.FINALIZED) {
-                    //download the traces for the trip
-                    //Log.d(TAG, "Download traces for trip: " + tripResp.guid);
-                    //TripTraceDownloadRequest.Start(trip.guid);
-                } else if (currentTrip != null && currentTrip.getSynced() == true) {
-                    DriveSenseApp.DBHelper().updateTrip(tripResp);
-                    Log.d(TAG, "Updated trip " + tripResp.guid + " in the database.");
-                } //otherwise do nothing if the trip is not synced
+        new AsyncTask<TripMetadata, Void, Void>() {
+            @Override
+            protected Void doInBackground(TripMetadata... tripMetadatas) {
+                for (TripMetadata tripResp : tripMetadatas) {
+                    //only store trips locally if they are not live
+                    if(tripResp.status != TripMetadata.LIVE) {
+                        Trip currentTrip = DriveSenseApp.DBHelper().getTrip(tripResp.guid);
+                        if (currentTrip == null && tripResp.status == TripMetadata.FINALIZED) {
+                            //download the traces for the trip
+                            Log.d(TAG, "Download traces for trip: " + tripResp.guid);
+                            TripTraceDownloadRequest.Start(tripResp);
+                        } else if (currentTrip != null && currentTrip.getSynced() == true) {
+                            DriveSenseApp.DBHelper().updateTrip(tripResp);
+                            Log.d(TAG, "Updated trip " + tripResp.guid + " in the database.");
+                        } //otherwise do nothing if the trip is not synced
+                    }
+                }
+                return null;
             }
-        }
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,response.toArray(new TripMetadata[response.size()]));
     }
 
     @Override

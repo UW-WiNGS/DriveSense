@@ -300,7 +300,7 @@ public class TripService extends Service {
                 try {
                     ArrayList<TraceMessage> tmList = new ArrayList<>(traces.size());
                     traces.drainTo(tmList);
-                    long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList);
+                    long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList, false);
                     for (int i = 0; i < tmList.size(); i++) {
                         TraceMessage tm = tmList.get(i);
                         tm.rowid = rowids[i];
