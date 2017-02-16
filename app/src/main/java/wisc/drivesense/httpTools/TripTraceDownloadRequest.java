@@ -1,22 +1,17 @@
 package wisc.drivesense.httpTools;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.android.volley.Request;
 import com.android.volley.VolleyError;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import wisc.drivesense.DriveSenseApp;
-import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
-import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.GsonSingleton;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.TraceMessage;
@@ -27,22 +22,12 @@ import wisc.drivesense.utility.TripMetadata;
  */
 
 public class TripTraceDownloadRequest extends GsonRequest<List<Trace.Trip>> {
-    private static volatile boolean running = false;
     private TripMetadata trip;
     private static final Type responseType = new TypeToken<List<Trace.Trip>>(){}.getType();
 
-    private TripTraceDownloadRequest(String url, TripMetadata trip, DriveSenseToken dsToken) {
+    public TripTraceDownloadRequest(String url, TripMetadata trip, DriveSenseToken dsToken) {
         super(Method.POST, url, new TraceRequest(trip.guid, Trace.Trip.class), responseType, dsToken);
         this.trip = trip;
-    }
-
-    public static synchronized void Start(TripMetadata trip) {
-        if(!running) {
-            DriveSenseToken user = DriveSenseApp.DBHelper().getCurrentUser();
-
-            TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, trip, user);
-            DriveSenseApp.RequestQueue().add(currentRequest);
-        }
     }
 
     @Override

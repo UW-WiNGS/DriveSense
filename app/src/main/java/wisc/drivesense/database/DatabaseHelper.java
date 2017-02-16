@@ -351,6 +351,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * Update a whole list of trips at once with the metadata in this list.
+     * Performs sparse updates (ignoring null values)
+     * @param trips
+     */
+    public void updateTrips(List<TripMetadata> trips) {
+        wdb.beginTransaction();
+        for (TripMetadata trip:trips) {
+            updateTrip(trip);
+        }
+        wdb.setTransactionSuccessful();
+        wdb.endTransaction();
+    }
+
+    /**
      * Update a trip row using the sparse object trip. Does not set synced to false.
      * (Used to update trips when recieved from the server)
      * @param trip Members of this object that are null will not be updated in the DB
