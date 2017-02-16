@@ -53,7 +53,8 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity android:name=".activity.HistoryActivity" />
+        <activity android:name=".activity.HistoryActivity"
+            android:parentActivityName=".activity.MainActivity"/>
 
         <receiver
             android:name=".httpTools.NetworkStateReceiver"

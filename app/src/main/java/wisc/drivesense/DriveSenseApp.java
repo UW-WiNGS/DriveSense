@@ -39,7 +39,6 @@ public class DriveSenseApp extends Application {
                 TripUploadRequest.Start(context);
                 TripUpdateRequest update = new TripUpdateRequest(DBHelper().getCurrentUser());
                 RequestQueue().add(update);
-                //TripTraceDownloadRequest.Start("d8fc9fbc-f552-4267-aab3-d52d29afaef8", context);
                 return null;
             }
         }.execute();

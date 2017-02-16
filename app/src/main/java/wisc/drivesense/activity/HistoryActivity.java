@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Locale;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
+import wisc.drivesense.httpTools.TripUpdateRequest;
 import wisc.drivesense.httpTools.TripUploadRequest;
 import wisc.drivesense.utility.Trip;
 
@@ -43,12 +45,6 @@ public class HistoryActivity extends AppCompatActivity {
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.history_toolbar);
         toolbar.setTitle("Trips");
         toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
         setSupportActionBar(toolbar);
 
 
@@ -75,8 +71,9 @@ public class HistoryActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.refresh:
-                //TODO: Actually do something with refresh action
-                Log.d(TAG, "Refresh clicked");
+                Toast.makeText(this,"Refreshing trips from DriveSense server.", Toast.LENGTH_SHORT).show();
+                TripUpdateRequest update = new TripUpdateRequest(DriveSenseApp.DBHelper().getCurrentUser());
+                DriveSenseApp.RequestQueue().add(update);
                 return true;
 
             default:
