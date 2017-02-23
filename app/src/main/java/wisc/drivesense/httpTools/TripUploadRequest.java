@@ -82,13 +82,10 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
      */
     private static boolean wifiConnected(Context context) {
         ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Network[] networks = connManager.getAllNetworks();
+        NetworkInfo ni =  connManager.getActiveNetworkInfo();
         boolean wifi = false;
-        for (Network n: networks) {
-            NetworkInfo ni = connManager.getNetworkInfo(n);
-            if (ni.getType() == ConnectivityManager.TYPE_WIFI && ni.isConnected())
-                wifi = true;
-        }
+        if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI && ni.isConnected())
+            wifi = true;
         return wifi;
     }
 

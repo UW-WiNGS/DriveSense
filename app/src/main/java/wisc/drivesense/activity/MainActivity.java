@@ -86,8 +86,10 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             Log.d(TAG, "No GPS, resetting speed display.");
             tvSpeed.setText("--.--");
-            Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
-            tvTotalDistance.setText(String.format("*%.2f", distance.value));
+            if (boundTripService != null && boundTripService.getCurtrip() != null) {
+                Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+                tvTotalDistance.setText(String.format("*%.2f", distance.value));
+            }
         }
     };
 
