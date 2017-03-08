@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Database Version
     private static final String DATABASE_NAME = "drivesense.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
 
     // Table Names
     private static final String TABLE_USER = "user";
@@ -80,6 +80,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DROP_TABLE+TABLE_TRIP+";");
         db.execSQL(DROP_TABLE+TABLE_USER+";");
         onCreate(db);
+    }
+
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion){
+
     }
 
     public void onOpen(SQLiteDatabase db) {

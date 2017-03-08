@@ -33,6 +33,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
+import wisc.drivesense.activity.history.HistoryActivity;
+import wisc.drivesense.activity.history.TripViewActivity;
 import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.GsonSingleton;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     //for display usage only, all calculation is conducted in TripService
 
     private static String TAG = "MainActivity";
-    private MapViewFragment mapFragment;
+    private LiveMapViewFragment mapFragment;
     @BindView(R.id.speed_display) TextView tvSpeed;
     @BindView(R.id.speed_unit) TextView tvSpeedUnit;
     @BindView(R.id.distance_driven) TextView tvTotalDistance;
@@ -301,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.speed_display).setVisibility(View.GONE);
         findViewById(R.id.speed_unit).setVisibility(View.GONE);
         if(!displayingMap) {
-            mapFragment = MapViewFragment.newInstance();
+            mapFragment = LiveMapViewFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, mapFragment)

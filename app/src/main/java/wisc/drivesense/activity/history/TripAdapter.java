@@ -1,4 +1,4 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.activity.history;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -16,6 +16,7 @@ import java.util.Set;
 
 import butterknife.BindView;
 import wisc.drivesense.R;
+import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
 import wisc.drivesense.utility.Units;

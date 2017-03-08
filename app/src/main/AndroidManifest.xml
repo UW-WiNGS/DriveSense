@@ -53,7 +53,7 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity android:name=".activity.HistoryActivity"
+        <activity android:name=".activity.history.HistoryActivity"
             android:parentActivityName=".activity.MainActivity"/>
 
         <receiver
@@ -71,7 +71,7 @@
         </receiver>
 
         <activity
-            android:name=".activity.TripViewActivity"
+            android:name=".activity.history.TripViewActivity"
             android:label="@string/title_activity_map"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 

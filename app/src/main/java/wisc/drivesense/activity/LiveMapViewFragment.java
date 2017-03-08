@@ -23,11 +23,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import wisc.drivesense.R;
+import wisc.drivesense.activity.history.SingleTripMapFragment;
+import wisc.drivesense.activity.history.TripViewActivity;
 import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
-public class MapViewFragment extends Fragment {
+public class LiveMapViewFragment extends Fragment {
     private MapView mMapView;
     private GoogleMap googleMap;
     private List<BitmapDescriptor> bitmapDescriptors;
@@ -36,8 +38,8 @@ public class MapViewFragment extends Fragment {
 
     private View rootView;
 
-    public static MapViewFragment newInstance() {
-        return new MapViewFragment();
+    public static LiveMapViewFragment newInstance() {
+        return new LiveMapViewFragment();
     }
 
     @Override
@@ -59,7 +61,7 @@ public class MapViewFragment extends Fragment {
         }
 
 
-        bitmapDescriptors = TripViewActivity.producePoints(colors);
+        bitmapDescriptors = SingleTripMapFragment.producePoints(colors);
 
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override

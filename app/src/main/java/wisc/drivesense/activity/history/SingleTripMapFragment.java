@@ -1,27 +1,26 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.activity.history;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -33,95 +32,50 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.List;
 
-import wisc.drivesense.DriveSenseApp;
+import butterknife.BindView;
 import wisc.drivesense.R;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
-import wisc.drivesense.utility.Units;
 
-public class TripViewActivity extends Activity implements OnMapReadyCallback {
+/**
+ * Created by peter on 3/8/17.
+ */
 
-    static final LatLng madison_ = new LatLng(43.073052, -89.401230);
+public class SingleTripMapFragment extends Fragment implements OnMapReadyCallback {
+    private static String TAG = "SingleTripMapFragment";
+    @BindView(R.id.radioButtonSpeed) public RadioButton speedButton;
+    @BindView(R.id.radioButtonBrake) public RadioButton brakeButton;
+    @BindView(R.id.mapLoadingSpinner) public ProgressBar pbLoadingSpinner;
+    private static final LatLng madison_ = new LatLng(43.073052, -89.401230);
+
     private GoogleMap map_ = null;
-    private Trip trip_;
-    private static String TAG = "TripViewActivity";
-    private RadioButton speedButton;
-    private RadioButton brakeButton;
-    private TextView tvDuration;
-    private TextView tvDistance;
-    private ProgressBar pbLoadingSpinner;
-    private boolean metricUnits;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_single_trip_view);
-
-        Log.d(TAG, "onCreate");
-
-        metricUnits = SettingActivity.getMetricUnits(this);
-
-        speedButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
-        brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
-        tvDuration = (TextView) findViewById(R.id.duration_display);
-        tvDistance = (TextView) findViewById(R.id.distance_display);
-        pbLoadingSpinner = (ProgressBar) findViewById(R.id.mapLoadingSpinner);
-
-        Intent intent = getIntent();
-        String uuid = intent.getStringExtra("guid");
-        trip_ = DriveSenseApp.DBHelper().getTrip(uuid);
-
-        if(trip_ == null) {
-            finish();
-            return;
-        }
-
-        Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
-
-        ratingToolbar.setTitle("Your Trip");
-        ratingToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
-        ratingToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        new AsyncTripLoader().execute(trip_.guid);
-
-        long duration = trip_.getDuration();
-        tvDuration.setText(Units.displayTimeInterval(duration));
-        Units.userFacingDouble distance = Units.largeDistance(trip_.getDistance(), metricUnits);
-        tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
-
         map_ = null;
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
     }
 
-    private class AsyncTripLoader extends AsyncTask<String, Void, List<Trace.Trip>> {
-        protected List<Trace.Trip> doInBackground(String ... uuids) {
-            int count = uuids.length;
-            if(count!=1)
-                return null;
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View rootView =  inflater.inflate(R.layout.fragment_single_trip_map, container);
+        brakeButton.setOnClickListener(radioClickListener);
+        speedButton.setOnClickListener(radioClickListener);
+        SupportMapFragment mapFragment = (SupportMapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        return rootView;
+    }
 
-            String uuid = uuids[0];
-            List<Trace.Trip> points = DriveSenseApp.DBHelper().getGPSPoints(uuid);
-            return points;
-        }
-        protected void onPostExecute(List<Trace.Trip> result) {
-            trip_.setGPSPoints(result);
-            //only try to populate the map if it is loaded already
-            if(map_ != null)
-                populateMap();
-        }
+    private Trip getParentTrip() {
+        return ((TripViewActivity)getContext()).trip_;
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         map_ = map;
         map_.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -146,22 +100,22 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
 
         map_.moveCamera(CameraUpdateFactory.newCameraPosition(position));
 
-        if(trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
+        if(getParentTrip().getGPSPoints() != null && getParentTrip().getGPSPoints().size() != 0) {
             populateMap();
         }
     }
 
     public void populateMap() {
-        if(trip_.getGPSPoints() == null)
+        if(getParentTrip().getGPSPoints() == null || map_ == null)
             return;
 
         pbLoadingSpinner.setVisibility(View.INVISIBLE);
 
         LatLng start;
-        int sz = trip_.getGPSPoints().size();
+        int sz = getParentTrip().getGPSPoints().size();
 
         if(sz >= 2) {
-            start = trip_.getStartPoint();
+            start = getParentTrip().getStartPoint();
         } else {
             start = madison_;
         }
@@ -221,7 +175,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
             return;
         }
 
-        if(trip_.getGPSPoints() == null || trip_.getGPSPoints().size() <=2) {
+        if(getParentTrip().getGPSPoints() == null || getParentTrip().getGPSPoints().size() <=2) {
             Log.e(TAG, "invalid GPS points");
             return;
         }
@@ -235,7 +189,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         //    }
         //}
 
-        int sz = trip_.getGPSPoints().size();
+        int sz = getParentTrip().getGPSPoints().size();
         Log.d(TAG, "gps size after remove zeros" + sz);
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -244,11 +198,11 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         List<BitmapDescriptor> bitmapDescriptors = producePoints(colors);
 
         // plot the route on the google map
-        double distance = trip_.getDistance();
+        double distance = getParentTrip().getDistance();
         double step = distance/1000;
         Trace.Trip lastgps = null;
         for (int i = 0; i < sz; i++) {
-            Trace.Trip point = trip_.getGPSPoints().get(i);
+            Trace.Trip point = getParentTrip().getGPSPoints().get(i);
             if(lastgps == null) {
                 lastgps = point;
             } else {
@@ -283,10 +237,10 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         }
 
         // market the starting and ending points
-        LatLng start = trip_.getStartPoint();
+        LatLng start = getParentTrip().getStartPoint();
         MarkerOptions startOptions = new MarkerOptions().position(start).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         map_.addMarker(startOptions);
-        LatLng end = trip_.getEndPoint();
+        LatLng end = getParentTrip().getEndPoint();
         MarkerOptions endOptions = new MarkerOptions().position(end);
         map_.addMarker(endOptions);
 
@@ -301,7 +255,12 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
     }
 
 
-
+    private View.OnClickListener radioClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            onRadioButtonClicked(view);
+        }
+    };
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
         boolean checked = ((RadioButton) view).isChecked();
@@ -312,4 +271,5 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         // Check which radio button was clicked
         plotRoute();
     }
+
 }

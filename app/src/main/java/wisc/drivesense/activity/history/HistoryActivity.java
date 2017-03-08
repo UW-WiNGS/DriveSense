@@ -1,4 +1,4 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.activity.history;
 
 import android.content.DialogInterface;
 import android.content.Intent;
