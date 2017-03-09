@@ -155,7 +155,7 @@ public class HistoryActivity extends AppCompatActivity {
             ListView listView = (ListView)rootView.findViewById(R.id.listView);
             Log.d(TAG, "Start " +calToUnix(start));
             trips_ = DriveSenseApp.DBHelper().loadTrips("starttime >= "+calToUnix(start)+" and starttime < "+calToUnix(end) +" and status=2");
-            adapter_ = new TripAdapter(this.getContext(), trips_);
+            adapter_ = new TripHistoryListAdapter(this.getContext(), trips_);
 
             listView.setAdapter(adapter_);
 

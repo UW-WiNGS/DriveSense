@@ -10,8 +10,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -36,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.activity.SettingActivity;
@@ -43,18 +49,28 @@ import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 import wisc.drivesense.utility.Units;
 
-public class TripViewActivity extends Activity {
+public class TripViewActivity extends AppCompatActivity {
     protected Trip trip_;
     private static String TAG = "TripViewActivity";
     private SingleTripMapFragment mapFrag;
     private SingleTripStatsFragment statsFrag;
+    @BindView(R.id.single_trip_tabs) public TabLayout tripTabs;
+    @BindView(R.id.single_trip_tab_pager) public ViewPager singleTripTabPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_trip_view);
 
+        ButterKnife.bind(this);
+
         Log.d(TAG, "onCreate");
+
+        mapFrag = new SingleTripMapFragment();
+        statsFrag = new SingleTripStatsFragment();
+
+        singleTripTabPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
+        tripTabs.setupWithViewPager(singleTripTabPager);
 
         Intent intent = getIntent();
         String uuid = intent.getStringExtra("guid");
@@ -91,9 +107,44 @@ public class TripViewActivity extends Activity {
         }
         protected void onPostExecute(List<Trace.Trip> result) {
             trip_.setGPSPoints(result);
-            mapFrag.populateMap();
+            if(mapFrag!= null)
+            {
+                mapFrag.setTrip(trip_);
+                mapFrag.populateMap();
+            }
+
         }
     }
 
+    private class TabPagerAdapter extends FragmentPagerAdapter {
 
+        public TabPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return "Map";
+                default:
+                    return "Stats";
+            }
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return mapFrag;
+                default:
+                    return statsFrag;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+    }
 }

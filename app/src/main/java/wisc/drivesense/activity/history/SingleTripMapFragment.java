@@ -1,6 +1,7 @@
 package wisc.drivesense.activity.history;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -10,6 +11,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import wisc.drivesense.R;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
@@ -49,26 +54,35 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
     private static final LatLng madison_ = new LatLng(43.073052, -89.401230);
 
     private GoogleMap map_ = null;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        map_ = null;
-    }
+    private Trip trip_ = null;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView =  inflater.inflate(R.layout.fragment_single_trip_map, container);
-        brakeButton.setOnClickListener(radioClickListener);
-        speedButton.setOnClickListener(radioClickListener);
-        SupportMapFragment mapFragment = (SupportMapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        View rootView =  inflater.inflate(R.layout.fragment_single_trip_map, container, false);
+        ButterKnife.bind(this,rootView);
+
         return rootView;
     }
 
-    private Trip getParentTrip() {
-        return ((TripViewActivity)getContext()).trip_;
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        FragmentManager fm = getChildFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentByTag("mapFragment");
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();;
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.add(R.id.mapFragmentContainer, mapFragment);
+            ft.commit();
+            fm.executePendingTransactions();
+        }
+        mapFragment.getMapAsync(this);
+
+    }
+
+    public void setTrip(Trip trip) {
+        trip_ = trip;
     }
 
     @Override
@@ -100,22 +114,22 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
 
         map_.moveCamera(CameraUpdateFactory.newCameraPosition(position));
 
-        if(getParentTrip().getGPSPoints() != null && getParentTrip().getGPSPoints().size() != 0) {
+        if(trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
             populateMap();
         }
     }
 
     public void populateMap() {
-        if(getParentTrip().getGPSPoints() == null || map_ == null)
+        if(trip_.getGPSPoints() == null || map_ == null)
             return;
 
         pbLoadingSpinner.setVisibility(View.INVISIBLE);
 
         LatLng start;
-        int sz = getParentTrip().getGPSPoints().size();
+        int sz = trip_.getGPSPoints().size();
 
         if(sz >= 2) {
-            start = getParentTrip().getStartPoint();
+            start = trip_.getStartPoint();
         } else {
             start = madison_;
         }
@@ -175,7 +189,7 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
             return;
         }
 
-        if(getParentTrip().getGPSPoints() == null || getParentTrip().getGPSPoints().size() <=2) {
+        if(trip_.getGPSPoints() == null || trip_.getGPSPoints().size() <=2) {
             Log.e(TAG, "invalid GPS points");
             return;
         }
@@ -189,7 +203,7 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
         //    }
         //}
 
-        int sz = getParentTrip().getGPSPoints().size();
+        int sz = trip_.getGPSPoints().size();
         Log.d(TAG, "gps size after remove zeros" + sz);
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -198,11 +212,11 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
         List<BitmapDescriptor> bitmapDescriptors = producePoints(colors);
 
         // plot the route on the google map
-        double distance = getParentTrip().getDistance();
+        double distance = trip_.getDistance();
         double step = distance/1000;
         Trace.Trip lastgps = null;
         for (int i = 0; i < sz; i++) {
-            Trace.Trip point = getParentTrip().getGPSPoints().get(i);
+            Trace.Trip point = trip_.getGPSPoints().get(i);
             if(lastgps == null) {
                 lastgps = point;
             } else {
@@ -237,10 +251,10 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
         }
 
         // market the starting and ending points
-        LatLng start = getParentTrip().getStartPoint();
+        LatLng start = trip_.getStartPoint();
         MarkerOptions startOptions = new MarkerOptions().position(start).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         map_.addMarker(startOptions);
-        LatLng end = getParentTrip().getEndPoint();
+        LatLng end = trip_.getEndPoint();
         MarkerOptions endOptions = new MarkerOptions().position(end);
         map_.addMarker(endOptions);
 
@@ -254,13 +268,7 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
         });
     }
 
-
-    private View.OnClickListener radioClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            onRadioButtonClicked(view);
-        }
-    };
+    @OnClick({R.id.radioButtonBrake, R.id.radioButtonSpeed})
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
         boolean checked = ((RadioButton) view).isChecked();

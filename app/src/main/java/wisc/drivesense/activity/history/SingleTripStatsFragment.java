@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 import wisc.drivesense.R;
 import wisc.drivesense.activity.SettingActivity;
 import wisc.drivesense.utility.Trip;
@@ -27,7 +28,8 @@ public class SingleTripStatsFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_single_trip_stats, container);
+        View rootView = inflater.inflate(R.layout.fragment_single_trip_stats, container, false);
+        ButterKnife.bind(this,rootView);
         metricUnits = SettingActivity.getMetricUnits(getContext());
         updateFields();
         return rootView;

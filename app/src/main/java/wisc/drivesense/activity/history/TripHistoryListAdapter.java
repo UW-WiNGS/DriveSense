@@ -21,12 +21,12 @@ import wisc.drivesense.utility.Constants;
 import wisc.drivesense.utility.Trip;
 import wisc.drivesense.utility.Units;
 
-public class TripAdapter extends ArrayAdapter<Trip> {
+public class TripHistoryListAdapter extends ArrayAdapter<Trip> {
     List<Trip> trips_ = null;
     private boolean metricUnits;
 
-    private final String TAG = "TripAdapter";
-    public TripAdapter(Context context, List<Trip> trips) {
+    private final String TAG = "TripHistoryListAdapter";
+    public TripHistoryListAdapter(Context context, List<Trip> trips) {
         super(context, 0, trips);
         trips_ = trips;
         metricUnits = SettingActivity.getMetricUnits(context);
