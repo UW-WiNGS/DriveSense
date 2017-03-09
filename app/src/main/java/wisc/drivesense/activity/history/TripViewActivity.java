@@ -107,6 +107,9 @@ public class TripViewActivity extends AppCompatActivity {
         }
         protected void onPostExecute(List<Trace.Trip> result) {
             trip_.setGPSPoints(result);
+            if(statsFrag != null) {
+                statsFrag.updateFields();
+            }
             if(mapFrag!= null)
             {
                 mapFrag.setTrip(trip_);

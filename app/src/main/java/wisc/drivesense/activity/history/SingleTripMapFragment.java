@@ -114,13 +114,13 @@ public class SingleTripMapFragment extends Fragment implements OnMapReadyCallbac
 
         map_.moveCamera(CameraUpdateFactory.newCameraPosition(position));
 
-        if(trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
+        if(trip_ != null && trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
             populateMap();
         }
     }
 
     public void populateMap() {
-        if(trip_.getGPSPoints() == null || map_ == null)
+        if(trip_ == null || trip_.getGPSPoints() == null || map_ == null)
             return;
 
         pbLoadingSpinner.setVisibility(View.INVISIBLE);

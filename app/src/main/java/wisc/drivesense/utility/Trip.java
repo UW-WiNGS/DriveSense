@@ -59,6 +59,11 @@ public class Trip extends TripMetadata {
     public long getEndTime() {
         return this.endTime_;
     }
+
+    /**
+     *
+     * @return Trip distance in meters
+     */
     public double getDistance() {
         return this.distance;
     }

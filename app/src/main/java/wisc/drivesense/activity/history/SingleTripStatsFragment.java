@@ -8,10 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import wisc.drivesense.R;
 import wisc.drivesense.activity.SettingActivity;
+import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 import wisc.drivesense.utility.Units;
 
@@ -23,6 +26,8 @@ public class SingleTripStatsFragment extends Fragment {
 
     @BindView(R.id.duration_display) public TextView tvDuration;
     @BindView(R.id.distance_display) public TextView tvDistance;
+    @BindView(R.id.top_speed_display) public TextView tvTopSpeed;
+    @BindView(R.id.average_speed_display) public TextView tvAverageSpeed;
 
     private boolean metricUnits;
     @Nullable
@@ -39,13 +44,29 @@ public class SingleTripStatsFragment extends Fragment {
         return ((TripViewActivity)getContext()).trip_;
     }
 
-    private void updateFields() {
+    public void updateFields() {
         Trip trip = getParentTrip();
         if(trip != null) {
             long duration = trip.getDuration();
             tvDuration.setText(Units.displayTimeInterval(duration));
-            Units.userFacingDouble distance = Units.largeDistance(getParentTrip().getDistance(), metricUnits);
-            tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
+            double distance = getParentTrip().getDistance();
+            Units.userFacingDouble distDisplay = Units.largeDistance(distance, metricUnits);
+            tvDistance.setText(String.format("%.2f", distDisplay.value) + " " + distDisplay.unitName);
+
+            double averageSpeed = distance / duration * 1000;
+            Units.userFacingDouble averageSpeedDisplay = Units.speed(averageSpeed, metricUnits);
+            tvAverageSpeed.setText(String.format("%.2f", averageSpeedDisplay.value) + " " + averageSpeedDisplay.unitName);
+
+            double topSpeed = 0;
+            List<Trace.Trip> gps = getParentTrip().getGPSPoints();
+            if(gps != null) {
+                for (Trace.Trip t: gps) {
+                    if(t.speed > topSpeed)
+                        topSpeed=t.speed;
+                }
+            }
+            Units.userFacingDouble topSpeedDisplay = Units.speed(topSpeed, metricUnits);
+            tvTopSpeed.setText(String.format("%.2f", topSpeedDisplay.value) + " " + topSpeedDisplay.unitName);
         }
     }
 }
