@@ -41,7 +41,10 @@ public class SingleTripStatsFragment extends Fragment {
     }
 
     private Trip getParentTrip() {
-        return ((TripViewActivity)getContext()).trip_;
+        TripViewActivity t = ((TripViewActivity)getContext());
+        if(t!= null)
+            return t.trip_;
+        return null;
     }
 
     public void updateFields() {
@@ -55,7 +58,7 @@ public class SingleTripStatsFragment extends Fragment {
 
             double averageSpeed = distance / duration * 1000;
             Units.userFacingDouble averageSpeedDisplay = Units.speed(averageSpeed, metricUnits);
-            tvAverageSpeed.setText(String.format("%.2f", averageSpeedDisplay.value) + " " + averageSpeedDisplay.unitName);
+            tvAverageSpeed.setText(String.format("%.1f", averageSpeedDisplay.value) + " " + averageSpeedDisplay.unitName);
 
             double topSpeed = 0;
             List<Trace.Trip> gps = getParentTrip().getGPSPoints();
@@ -66,7 +69,7 @@ public class SingleTripStatsFragment extends Fragment {
                 }
             }
             Units.userFacingDouble topSpeedDisplay = Units.speed(topSpeed, metricUnits);
-            tvTopSpeed.setText(String.format("%.2f", topSpeedDisplay.value) + " " + topSpeedDisplay.unitName);
+            tvTopSpeed.setText(String.format("%.1f", topSpeedDisplay.value) + " " + topSpeedDisplay.unitName);
         }
     }
 }

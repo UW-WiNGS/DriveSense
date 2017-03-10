@@ -24,7 +24,7 @@ public class Constants {
     public static final int kBatchUploadCount = 5000;
 
 
-    private static final String kDomain = "http://drivesensetest.wirover.com:8000";
+    private static final String kDomain = "http://drivesense.io";
 
     public static final String kTripURL = kDomain + "/updateTrip";
     public static final String kTripTracesURL = kDomain + "/tripTraces";
