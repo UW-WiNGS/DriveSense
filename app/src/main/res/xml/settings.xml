@@ -47,14 +47,10 @@
             android:title="Pause When Stationary"
             android:key="pause_when_stationary"
             android:summary="@string/pause_summary"/>
-        <EditTextPreference
-            android:defaultValue="@integer/default_minimum_distance"
-            android:inputType="number"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
+        <wisc.drivesense.preferences.DistancePicker
             android:title="Minimum Trip Distance"
-            android:key="minimum_distance"
-            android:summary="Minimum trip length in meters for it to be saved." />
+            android:key="minimum_distance_int"
+            android:summary="Minimum length for a trip to be saved." />
     </PreferenceCategory>
 
     <EditTextPreference

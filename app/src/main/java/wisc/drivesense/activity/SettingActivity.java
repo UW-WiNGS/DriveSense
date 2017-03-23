@@ -10,6 +10,7 @@ import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 
 import wisc.drivesense.R;
+import wisc.drivesense.utility.Constants;
 
 public class SettingActivity extends AppCompatActivity {
 
@@ -55,7 +56,7 @@ public class SettingActivity extends AppCompatActivity {
     public static int getMinimumDistance(Context context) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         //minimum distance is in meters
-        int minDistance = Integer.parseInt(sharedPref.getString("minimum_distance", ""+context.getResources().getInteger(R.integer.default_minimum_distance)));
+        int minDistance = sharedPref.getInt("minimum_distance_int", Constants.DEFAULT_MINIMUM_TRIP_DIST_METERS);
         return minDistance;
     }
 
