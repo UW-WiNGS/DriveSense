@@ -24,4 +24,12 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:id="@+id/sign_out_button" />
+
+    <CheckBox
+        android:id="@+id/research_consent_check"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/name"
+        android:text="Allow anonymous DriveSense data to be used for research." />
 </RelativeLayout>

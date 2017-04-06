@@ -25,7 +25,7 @@ import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
 import wisc.drivesense.httpPayloads.LoginPayload;
 import wisc.drivesense.httpPayloads.TokenLoginPayload;
-import wisc.drivesense.httpPayloads.GsonRequest;
+import wisc.drivesense.httpTools.GsonRequest;
 import wisc.drivesense.utility.Constants;
 
 public class UserActivity extends AppCompatActivity {

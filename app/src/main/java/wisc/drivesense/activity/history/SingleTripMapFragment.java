@@ -1,27 +1,29 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.activity.history;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -32,98 +34,62 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import wisc.drivesense.DriveSenseApp;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import wisc.drivesense.R;
 import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
-import wisc.drivesense.utility.Units;
 
-public class TripViewActivity extends Activity implements OnMapReadyCallback {
+/**
+ * Created by peter on 3/8/17.
+ */
 
-    static final LatLng madison_ = new LatLng(43.073052, -89.401230);
+public class SingleTripMapFragment extends Fragment implements OnMapReadyCallback {
+    private static String TAG = "SingleTripMapFragment";
+    @BindView(R.id.radioButtonSpeed) public RadioButton speedButton;
+    @BindView(R.id.radioButtonBrake) public RadioButton brakeButton;
+    @BindView(R.id.mapLoadingSpinner) public ProgressBar pbLoadingSpinner;
+    private static final LatLng madison_ = new LatLng(43.073052, -89.401230);
+
     private GoogleMap map_ = null;
-    private Trip trip_;
-    private static String TAG = "TripViewActivity";
-    private RadioButton speedButton;
-    private RadioButton brakeButton;
-    private TextView tvDuration;
-    private TextView tvDistance;
-    private ProgressBar pbLoadingSpinner;
-    private boolean metricUnits;
+    private Trip trip_ = null;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_single_trip_view);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View rootView =  inflater.inflate(R.layout.fragment_single_trip_map, container, false);
+        ButterKnife.bind(this,rootView);
 
-        Log.d(TAG, "onCreate");
-
-        metricUnits = SettingActivity.getMetricUnits(this);
-
-        speedButton = (RadioButton) findViewById(R.id.radioButtonSpeed);
-        brakeButton = (RadioButton) findViewById(R.id.radioButtonBrake);
-        tvDuration = (TextView) findViewById(R.id.duration_display);
-        tvDistance = (TextView) findViewById(R.id.distance_display);
-        pbLoadingSpinner = (ProgressBar) findViewById(R.id.mapLoadingSpinner);
-
-        Intent intent = getIntent();
-        String uuid = intent.getStringExtra("uuid");
-        trip_ = DriveSenseApp.DBHelper().getTrip(uuid);
-
-        if(trip_ == null) {
-            finish();
-            return;
-        }
-
-        Toolbar ratingToolbar = (Toolbar) findViewById(R.id.tool_bar_rating);
-
-        ratingToolbar.setTitle("Your Trip");
-        ratingToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
-        ratingToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        new AsyncTripLoader().execute(trip_.uuid);
-
-        long duration = trip_.getDuration();
-        tvDuration.setText(Units.displayTimeInterval(duration));
-        Units.userFacingDouble distance = Units.largeDistance(trip_.getDistance(), metricUnits);
-        tvDistance.setText(String.format("%.2f", distance.value) + " " + distance.unitName);
-
-        map_ = null;
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        return rootView;
     }
 
-    private class AsyncTripLoader extends AsyncTask<UUID, Void, List<Trace.Trip>> {
-        protected List<Trace.Trip> doInBackground(UUID ... uuids) {
-            int count = uuids.length;
-            if(count!=1)
-                return null;
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        FragmentManager fm = getChildFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentByTag("mapFragment");
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance();;
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.add(R.id.mapFragmentContainer, mapFragment);
+            ft.commit();
+            fm.executePendingTransactions();
+        }
+        mapFragment.getMapAsync(this);
 
-            String uuid = uuids[0].toString();
-            List<Trace.Trip> points = DriveSenseApp.DBHelper().getGPSPoints(uuid);
-            return points;
-        }
-        protected void onPostExecute(List<Trace.Trip> result) {
-            trip_.setGPSPoints(result);
-            //only try to populate the map if it is loaded already
-            if(map_ != null)
-                populateMap();
-        }
+    }
+
+    public void setTrip(Trip trip) {
+        trip_ = trip;
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         map_ = map;
         map_.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -148,13 +114,13 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
 
         map_.moveCamera(CameraUpdateFactory.newCameraPosition(position));
 
-        if(trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
+        if(trip_ != null && trip_.getGPSPoints() != null && trip_.getGPSPoints().size() != 0) {
             populateMap();
         }
     }
 
     public void populateMap() {
-        if(trip_.getGPSPoints() == null)
+        if(trip_ == null || trip_.getGPSPoints() == null || map_ == null)
             return;
 
         pbLoadingSpinner.setVisibility(View.INVISIBLE);
@@ -302,8 +268,7 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         });
     }
 
-
-
+    @OnClick({R.id.radioButtonBrake, R.id.radioButtonSpeed})
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
         boolean checked = ((RadioButton) view).isChecked();
@@ -314,4 +279,5 @@ public class TripViewActivity extends Activity implements OnMapReadyCallback {
         // Check which radio button was clicked
         plotRoute();
     }
+
 }

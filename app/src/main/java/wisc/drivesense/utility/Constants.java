@@ -23,10 +23,14 @@ public class Constants {
     public static final double kRecordingInterval = 100;
     public static final int kBatchUploadCount = 5000;
 
+    public static final int DEFAULT_MINIMUM_TRIP_DIST_METERS = 500;
 
-    private static final String kDomain = "http://drivesensetest.wirover.com:8000";
+
+    private static final String kDomain = "http://drivesense.io";
 
     public static final String kTripURL = kDomain + "/updateTrip";
+    public static final String kTripTracesURL = kDomain + "/tripTraces";
+    public static final String kAllTripsURL = kDomain + "/allTrips";
 
     public static final String kSignInURL = kDomain + "/auth/signin";
     public static final String kSignUpURL = kDomain + "/auth/signup";

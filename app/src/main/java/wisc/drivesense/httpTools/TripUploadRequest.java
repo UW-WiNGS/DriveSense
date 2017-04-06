@@ -1,4 +1,4 @@
-package wisc.drivesense.uploader;
+package wisc.drivesense.httpTools;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -10,15 +10,12 @@ import com.android.volley.Request;
 import com.android.volley.VolleyError;
 
 import java.util.List;
-import java.util.Set;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.activity.SettingActivity;
-import wisc.drivesense.httpPayloads.CompressedGSONRequest;
 import wisc.drivesense.httpPayloads.TripPayload;
 import wisc.drivesense.user.DriveSenseToken;
 import wisc.drivesense.utility.Constants;
-import wisc.drivesense.utility.Trace;
 import wisc.drivesense.utility.Trip;
 
 import static wisc.drivesense.utility.Constants.kBatchUploadCount;
@@ -69,7 +66,7 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
             if(trips.size() == 0) return;
             TripPayload payload = new TripPayload();
             Trip trip = trips.get(0);
-            payload.guid = trip.uuid.toString();
+            payload.guid = trip.guid.toString();
             payload.distance = trip.getDistance();
             payload.traces = DriveSenseApp.DBHelper().getUnsentTraces(payload.guid, kBatchUploadCount, !wifi);
             payload.status = trip.getStatus();
@@ -85,13 +82,10 @@ public class TripUploadRequest extends CompressedGSONRequest<TripPayload> {
      */
     private static boolean wifiConnected(Context context) {
         ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Network[] networks = connManager.getAllNetworks();
+        NetworkInfo ni =  connManager.getActiveNetworkInfo();
         boolean wifi = false;
-        for (Network n: networks) {
-            NetworkInfo ni = connManager.getNetworkInfo(n);
-            if (ni.getType() == ConnectivityManager.TYPE_WIFI && ni.isConnected())
-                wifi = true;
-        }
+        if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI && ni.isConnected())
+            wifi = true;
         return wifi;
     }
 

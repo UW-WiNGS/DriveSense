@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:keepScreenOn="true"
     >
-
     <android.support.v7.widget.Toolbar
         android:id="@+id/tool_bar_rating"
         android:layout_width="match_parent"
@@ -16,41 +15,13 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
-
-    <RelativeLayout
+    <android.support.v4.view.ViewPager
+        android:id="@+id/single_trip_tab_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="vertical" >
-        <fragment
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.MapFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.3"
-            />
-        <ProgressBar
-            android:id="@+id/mapLoadingSpinner"
-            android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+        <android.support.design.widget.TabLayout
+            android:id="@+id/single_trip_tabs"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="true"
-            android:indeterminateTint="#2164d1" />
-
-    </RelativeLayout>
-
-
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.8">
-
-
-    <include layout="@layout/content_drive_rating" />
-
-
-    </LinearLayout>
-
+            android:layout_width="match_parent"/>
+    </android.support.v4.view.ViewPager>
 </LinearLayout>

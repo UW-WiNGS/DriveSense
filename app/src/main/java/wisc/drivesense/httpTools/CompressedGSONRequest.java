@@ -1,6 +1,4 @@
-package wisc.drivesense.httpPayloads;
-
-import android.util.Log;
+package wisc.drivesense.httpTools;
 
 import com.android.volley.AuthFailureError;
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal"
+        android:paddingBottom="15dp"
+        android:id="@+id/radioGroup">
+        <RadioButton
+            android:id="@+id/radioButtonSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speed"
+            android:checked="true"
+            />
+        <RadioButton
+            android:id="@+id/radioButtonBrake"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brake"
+            />
+    </RadioGroup>
+    <TextView
+        android:id="@+id/displayTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/radioGroup"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Display in Map:"
+        android:layout_centerHorizontal="true"
+        android:textSize="20sp"
+        android:layout_marginTop="15dp"
+        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/displayTitle"
+        android:layout_alignParentTop="true">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/mapFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+        </LinearLayout>
+        <ProgressBar
+            android:id="@+id/mapLoadingSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="true"
+            android:indeterminateTint="#2164d1" />
+    </RelativeLayout>
+</RelativeLayout>

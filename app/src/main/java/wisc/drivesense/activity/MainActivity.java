@@ -28,12 +28,13 @@ import android.widget.TextView;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
+import wisc.drivesense.activity.history.HistoryActivity;
+import wisc.drivesense.activity.history.TripViewActivity;
 import wisc.drivesense.triprecorder.TripService;
 import wisc.drivesense.user.UserActivity;
 import wisc.drivesense.utility.GsonSingleton;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     //for display usage only, all calculation is conducted in TripService
 
     private static String TAG = "MainActivity";
-    private MapViewFragment mapFragment;
+    private LiveMapViewFragment mapFragment;
     @BindView(R.id.speed_display) TextView tvSpeed;
     @BindView(R.id.speed_unit) TextView tvSpeedUnit;
     @BindView(R.id.distance_driven) TextView tvTotalDistance;
@@ -87,8 +88,10 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             Log.d(TAG, "No GPS, resetting speed display.");
             tvSpeed.setText("--.--");
-            Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
-            tvTotalDistance.setText(String.format("*%.2f", distance.value));
+            if (boundTripService != null && boundTripService.getCurtrip() != null) {
+                Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+                tvTotalDistance.setText(String.format("*%.2f", distance.value));
+            }
         }
     };
 
@@ -300,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.speed_display).setVisibility(View.GONE);
         findViewById(R.id.speed_unit).setVisibility(View.GONE);
         if(!displayingMap) {
-            mapFragment = MapViewFragment.newInstance();
+            mapFragment = LiveMapViewFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, mapFragment)
@@ -366,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
         Trip lastTrip = DriveSenseApp.DBHelper().getLastTrip();
         if(lastTrip != null && lastTrip.getStatus() == 2) {
             Intent intent = new Intent(this, TripViewActivity.class);
-            intent.putExtra("uuid", lastTrip.uuid.toString());
+            intent.putExtra("guid", lastTrip.guid.toString());
             startActivity(intent);
         } else {
             Log.d(TAG, "Tried to show a trip, but it was null or deleted.");

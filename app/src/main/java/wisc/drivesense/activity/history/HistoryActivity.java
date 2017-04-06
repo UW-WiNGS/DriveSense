@@ -1,21 +1,25 @@
-package wisc.drivesense.activity;
+package wisc.drivesense.activity.history;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.List;
@@ -23,28 +27,26 @@ import java.util.Locale;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.uploader.TripUploadRequest;
+import wisc.drivesense.httpTools.TripUpdateRequest;
+import wisc.drivesense.httpTools.TripUploadRequest;
 import wisc.drivesense.utility.Trip;
 
-public class HistoryActivity extends FragmentActivity {
+public class HistoryActivity extends AppCompatActivity {
     // When requested, this adapter returns a DemoObjectFragment,
     // representing an object in the collection.
     MonthSearchPagerAdapter mMonthSearchPagerAdapter;
     ViewPager mViewPager;
+    private static String TAG = "HistoryActivity";
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
 
-        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.historytoolbar);
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.history_toolbar);
         toolbar.setTitle("Trips");
         toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        setSupportActionBar(toolbar);
+
 
         // ViewPager and its adapters use support library
         // fragments, so use getSupportFragmentManager.
@@ -54,6 +56,32 @@ public class HistoryActivity extends FragmentActivity {
         mViewPager = (ViewPager) findViewById(R.id.history_search_view);
         mViewPager.setAdapter(mMonthSearchPagerAdapter);
         mViewPager.setCurrentItem(mMonthSearchPagerAdapter.getCount()-1, false);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.history_menu, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.refresh:
+                Toast.makeText(this,"Refreshing trips from DriveSense server.", Toast.LENGTH_SHORT).show();
+                TripUpdateRequest update = new TripUpdateRequest(DriveSenseApp.DBHelper().getCurrentUser());
+                DriveSenseApp.RequestQueue().add(update);
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
     }
 
     private static Calendar startOfMonth() {
@@ -127,7 +155,7 @@ public class HistoryActivity extends FragmentActivity {
             ListView listView = (ListView)rootView.findViewById(R.id.listView);
             Log.d(TAG, "Start " +calToUnix(start));
             trips_ = DriveSenseApp.DBHelper().loadTrips("starttime >= "+calToUnix(start)+" and starttime < "+calToUnix(end) +" and status=2");
-            adapter_ = new TripAdapter(this.getContext(), trips_);
+            adapter_ = new TripHistoryListAdapter(this.getContext(), trips_);
 
             listView.setAdapter(adapter_);
 
@@ -138,7 +166,7 @@ public class HistoryActivity extends FragmentActivity {
 
                     Trip trip = adapter_.getItem(position);
                     Intent intent = new Intent(getContext(), TripViewActivity.class);
-                    intent.putExtra("uuid", trip.uuid.toString());
+                    intent.putExtra("guid", trip.guid.toString());
                     startActivity(intent);
                 }
 
@@ -154,7 +182,7 @@ public class HistoryActivity extends FragmentActivity {
                         public void onClick(DialogInterface dialog, int pos) {
                             Log.d(TAG, "delete:" + position);
                             Trip trip = adapter_.getItem(position);
-                            DriveSenseApp.DBHelper().deleteTrip(trip.uuid.toString());
+                            DriveSenseApp.DBHelper().deleteTrip(trip.guid.toString());
                             adapter_.remove(trip);
                             TripUploadRequest.Start(view.getContext());
                         }
