@@ -17,6 +17,10 @@ import wisc.drivesense.httpTools.TripUploadRequest;
  * Created by Alex Sherman on 11/23/2016.
  */
 
+/**
+ * run once when the app launch, the first run before all other applications
+ * this is where singleton class they are created
+ */
 public class DriveSenseApp extends Application {
     private static Context context;
     private static RequestQueue requestQueue = null;
@@ -25,6 +29,9 @@ public class DriveSenseApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        //the mint is used when teh user's app is crashed , the stack will send to us emails and
+        // it will be stored online
+        // accessed by : https://mint.splunk.com/account/team/5400007893188608
         Mint.initAndStartSession(this, "28d86904");
         context = getApplicationContext();
 

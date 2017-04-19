@@ -41,11 +41,14 @@ public class TripUpdateRequest extends GsonRequest<List<TripMetadata>> {
                         Trip currentTrip = DriveSenseApp.DBHelper().getTrip(tripResp.guid);
                         if (currentTrip == null && tripResp.status == TripMetadata.FINALIZED) {
                             //download the traces for the trip
+                            // there is no meta data on the device, it stores the meta data after traces have successfully been downloaded
                             Log.d(TAG, "Download traces for trip: " + tripResp.guid);
+                            //pass trip metadata in, TripTraceDownloadRequest will store it along with traces after download
                             TripTraceDownloadRequest currentRequest = new TripTraceDownloadRequest(Constants.kTripTracesURL, tripResp, dsToken);
                             DriveSenseApp.RequestQueue().add(currentRequest);
                         } else if (currentTrip != null && currentTrip.getSynced()) {
                             //only update a trip's data if it's synced
+                            //only meta data update if the trip already in current device
                             toUpdate.add(tripResp);
                         } //otherwise do nothing if the trip is not synced
                     }

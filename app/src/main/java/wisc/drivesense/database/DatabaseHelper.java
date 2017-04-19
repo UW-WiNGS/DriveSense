@@ -41,6 +41,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Synced flag on a trip ONLY indicates that the metadata for the trip has been synced
     // Trips with unsynced traces still need to be found by looking at those flags
+    // uuid is used to uniquely identify a trip, it is the REAL primary key
+    // it is used both on the server and device
     private static final String CREATE_TABLE_TRIP = "CREATE TABLE IF NOT EXISTS "
             + TABLE_TRIP + "(id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, starttime INTEGER, endtime INTEGER,"
             + " distance REAL, score REAL, status INTEGER, synced INTEGER, email TEXT);";
@@ -73,6 +75,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_INDEX2_TRACE);
     }
 
+    /**
+     * this method is called when DATABASE_VERSION is changed
+     * for example, we change DATABASE_VERSION from 2 to 3
+     * @oldVersion is 2 and @newVersion is 3
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d(TAG, "Dropping tables for upgrade");
@@ -129,6 +136,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.endTransaction();
     }
 
+    /**
+     * insert the trip meta data
+     * @param trip
+     */
     public void insertTrip(Trip trip) {
         Gson gson = new Gson();
         ContentValues values = new ContentValues();
@@ -185,6 +196,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return insertIDs;
     }
 
+    /**
+     * This is for every sensor row
+     * synced has been sent to the server
+     * this is called only when it is sent to the server
+     * it is marked synced automatically if the trip is downloaded
+     * It indicates the consistence status between device and server, including download, deletion and everything
+     * @param traceids
+     */
     public void markTracesSynced(Long[] traceids) {
         ContentValues values = new ContentValues();
         values.put("synced", 1);
@@ -198,6 +217,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.update(TABLE_TRACE, values, whereClause, null);
     }
 
+    /**
+     * This is for trip meta data
+     * 1. trip sent to server
+     * 2. trip downloaded
+     * @param uuid
+     */
     public void markTripSynced(String uuid) {
         ContentValues values = new ContentValues();
         values.put("synced", 1);
@@ -430,6 +455,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //email TEXT, firstname TEXT, lastname TEXT, dstoken TEXT
 /* ========================== UserObject Specific Database Operations =================================== */
 
+    /**
+     * @return DriveSense token used for HTTP request, null if no user logs in
+     */
     public DriveSenseToken getCurrentUser() {
         DriveSenseToken user;
         String selectQuery = "SELECT  email, firstname, lastname, dstoken FROM " + TABLE_USER;

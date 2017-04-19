@@ -24,16 +24,24 @@ import wisc.drivesense.utility.GsonSingleton;
  * Created by peter on 10/27/16.
  */
 
+/**
+ *
+ * @param <T> Java generic type
+ */
 public abstract class GsonRequest<T> extends Request<T> implements Response.Listener<T>, Response.ErrorListener {
     protected Object payload;
     final String TAG = "GsonRequest";
+    // responseType is the same type of @T
     private final Type responseType;
+    // verify the account token
+    // handled by volley library, in the head of the HTTP header
     protected DriveSenseToken dsToken = null;
 
     public GsonRequest(int method, String url, Object body, Type responseType, DriveSenseToken dsToken) {
         super(method, url, null);
         payload = body;
         this.responseType = responseType;
+        //timeout after 10 second
         this.setRetryPolicy(new DefaultRetryPolicy(10000, 0, 0));
         this.dsToken = dsToken;
     }
@@ -45,11 +53,25 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
         this(method,url, body, (Type)responseType, null);
     }
 
-    public String getBodyContentType()
-    {
-        return "application/json";
+    //Everything below this point is callbacks
+
+    @Override
+    protected void deliverResponse(T response) {
+        this.onResponse(response);
     }
 
+    @Override
+    public void deliverError(VolleyError error) {
+        Log.d(TAG, error.toString());
+        super.deliverError(error);
+        this.onErrorResponse(error);
+    }
+
+    /**
+     * We do not need to call this, callback from volley
+     * @return
+     * @throws AuthFailureError
+     */
     @Override
     public Map<String, String> getHeaders() throws AuthFailureError {
 
@@ -62,20 +84,7 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
     @Override
     public byte[] getBody() {
         String json = GsonSingleton.toJson(payload);
-
         return json.getBytes();
-    }
-
-    @Override
-    protected void deliverResponse(T response) {
-        this.onResponse(response);
-    }
-
-    @Override
-    public void deliverError(VolleyError error) {
-        Log.d(TAG, error.toString());
-        super.deliverError(error);
-        this.onErrorResponse(error);
     }
 
     @Override
@@ -90,4 +99,11 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
             return Response.error(new ParseError(e));
         }
     }
+
+    public String getBodyContentType()
+    {
+        return "application/json";
+    }
+
+
 }
