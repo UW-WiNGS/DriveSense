@@ -27,7 +27,7 @@ import java.util.Locale;
 
 import wisc.drivesense.DriveSenseApp;
 import wisc.drivesense.R;
-import wisc.drivesense.httpTools.TripUpdateRequest;
+import wisc.drivesense.httpTools.TripMetadataDownloadRequest;
 import wisc.drivesense.httpTools.TripUploadRequest;
 import wisc.drivesense.utility.Trip;
 
@@ -72,7 +72,7 @@ public class HistoryActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.refresh:
                 Toast.makeText(this,"Refreshing trips from DriveSense server.", Toast.LENGTH_SHORT).show();
-                TripUpdateRequest update = new TripUpdateRequest(DriveSenseApp.DBHelper().getCurrentUser());
+                TripMetadataDownloadRequest update = new TripMetadataDownloadRequest(DriveSenseApp.DBHelper().getCurrentUser());
                 DriveSenseApp.RequestQueue().add(update);
                 return true;
 

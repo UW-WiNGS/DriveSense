@@ -8,6 +8,10 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class Units {
+    // imperial units: feet, mi, mph
+    // metric units: meter, km, km/h
+
+
     public static class userFacingDouble {
         public String unitName;
         public double value;
@@ -16,6 +20,12 @@ public class Units {
         String unitName;
         int value;
     }
+
+    /**
+     * @param meters
+     * @param metricOutput
+     * @return
+     */
     public static userFacingDouble smallDistance(double meters, boolean metricOutput) {
         userFacingDouble val = new userFacingDouble();
         if(metricOutput){
@@ -49,6 +59,13 @@ public class Units {
         }
         return val;
     }
+
+
+    /**
+     * Mainly for trip duration
+     * @param milliseconds
+     * @return
+     */
     public static String displayTimeInterval(long milliseconds) {
         final long hours = TimeUnit.MILLISECONDS.toHours(milliseconds);
         final long min = TimeUnit.MILLISECONDS.toMinutes(milliseconds - TimeUnit.HOURS.toMillis(hours));

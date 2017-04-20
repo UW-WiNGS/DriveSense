@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 
 /**
+ * Json wrapper for Trace
  * Created by Vector on 11/10/2016.
  */
 

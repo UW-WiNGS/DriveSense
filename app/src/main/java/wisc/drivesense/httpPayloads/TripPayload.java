@@ -6,6 +6,7 @@ import wisc.drivesense.utility.TraceMessage;
 import wisc.drivesense.utility.TripMetadata;
 
 /**
+ * Used for both uploading
  * Created by Alex Sherman on 11/15/2016.
  */
 

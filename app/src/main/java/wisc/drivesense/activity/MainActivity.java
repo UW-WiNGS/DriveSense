@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = "MainActivity";
     private LiveMapViewFragment mapFragment;
+    //ButterKnife view id presentations
     @BindView(R.id.speed_display) TextView tvSpeed;
     @BindView(R.id.speed_unit) TextView tvSpeedUnit;
     @BindView(R.id.distance_driven) TextView tvTotalDistance;
@@ -107,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1001);
         }
 
+        // we can use @BindView(R.id.speed_display) TextView tvSpeed
+        // instead of
+        // findViewById
         ButterKnife.bind(this);
         //tvTilt.setVisibility(View.VISIBLE);
 

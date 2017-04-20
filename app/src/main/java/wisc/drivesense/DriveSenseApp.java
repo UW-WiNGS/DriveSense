@@ -9,8 +9,7 @@ import com.android.volley.toolbox.Volley;
 import com.splunk.mint.Mint;
 
 import wisc.drivesense.database.DatabaseHelper;
-import wisc.drivesense.httpTools.TripTraceDownloadRequest;
-import wisc.drivesense.httpTools.TripUpdateRequest;
+import wisc.drivesense.httpTools.TripMetadataDownloadRequest;
 import wisc.drivesense.httpTools.TripUploadRequest;
 
 /**
@@ -40,11 +39,11 @@ public class DriveSenseApp extends Application {
             protected Void doInBackground(Void... voids) {
                 // Mark all trips as finalized if the app is just starting,
                 // catches cases like the app crashed during a trip
-                DBHelper().finalizeTrips();
+                DBHelper().finalizeLiveTrips();
 
                 // Attempt to upload any unsent trips
                 TripUploadRequest.Start(context);
-                TripUpdateRequest update = new TripUpdateRequest(DBHelper().getCurrentUser());
+                TripMetadataDownloadRequest update = new TripMetadataDownloadRequest(DBHelper().getCurrentUser());
                 RequestQueue().add(update);
                 return null;
             }

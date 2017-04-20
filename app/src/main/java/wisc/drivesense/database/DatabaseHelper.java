@@ -95,60 +95,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public void onOpen(SQLiteDatabase db) {
-        db.execSQL(CREATE_INDEX_TRACE);
-        db.execSQL(CREATE_INDEX2_TRACE);
-        Log.d(TAG, "Created indexes on traces");
     }
 
-
-    /**
-     * Insert a trip download from the server and all of its traces in one single transaction.
-     * If any parts fails, the whole thing will be rolled back.
-     * @param trip
-     * @param tmList
-     */
-    public void insertTripAndTraces(TripMetadata trip, List<TraceMessage> tmList) {
-        wdb.beginTransaction();
-        ContentValues values = new ContentValues();
-        values.put("uuid", trip.guid.toString());
-        //TODO: Starttime and endtime should be optionally stored. Only needed when custom values are set
-        if(tmList.size() > 0){
-            values.put("starttime", tmList.get(0).value.time);
-            values.put("endtime", tmList.get(tmList.size()-1).value.time);
-        }
-
-        values.put("distance", trip.distance);
-        values.put("status", trip.status);
-        values.put("synced", 1);
-        DriveSenseToken user = this.getCurrentUser();
-        if(user != null) {
-            values.put("email", user.email);
-        }
-        wdb.insert(TABLE_TRIP, null, values);
-
-        try {
-            insertSensorData(trip.guid, tmList, true);
-            wdb.setTransactionSuccessful();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d(TAG, "Something went wrong inserting traces for a downloaded trip. Rolling back.");
-        }
-        wdb.endTransaction();
-    }
+    /////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * insert the trip meta data
+     * execute at the start of a trip, mark a trip is LIVE
      * @param trip
      */
     public void insertTrip(Trip trip) {
-        Gson gson = new Gson();
         ContentValues values = new ContentValues();
         values.put("uuid", trip.guid.toString());
         values.put("starttime", trip.getStartTime());
         values.put("endtime", trip.getEndTime());
         values.put("distance", trip.getDistance());
         values.put("score", trip.getScore());
-        values.put("status", 1);
+        values.put("status", Trip.LIVE);
         values.put("synced", 0);
         //assign to current user
         DriveSenseToken user = this.getCurrentUser();
@@ -161,40 +124,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.insert(TABLE_TRIP, null, values);
     }
 
-    /**
-     * Insert a list of TraceMessages in a bulk transaction to improve efficiency considerably
-     * @param tripUUID UUID of the trip.
-     * @param tmList Trace messages to insert
-     * @param synced Set to true for rows that already exist on the server (i.e. recently downloaded)
-     * @return List of the row IDs of the inserted objects in the order they were given
-     * @throws Exception
-     */
-    public long[] insertSensorData(String tripUUID, List<TraceMessage> tmList, boolean synced) throws Exception {
-        long[] insertIDs = new long[tmList.size()];
-        String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
-        Cursor cursor = rdb.rawQuery(selectQuery, null);
-        cursor.moveToFirst();
-        if(cursor.getCount() == 0)
-            throw new Exception();
-        int tripID = cursor.getInt(0);
-        cursor.close();
-        wdb.beginTransaction();
-        for (int i = 0; i < tmList.size(); i++) {
-            TraceMessage tm = tmList.get(i);
-            ContentValues values = new ContentValues();
-            values.put("synced", synced);
-            values.put("value", GsonSingleton.toJson(tm));
-            values.put("type", tm.type);
-            values.put("tripid", tripID);
-            long rowid = wdb.insert(TABLE_TRACE, null, values);
-            //rowid is an alias for a column declared as INTEGER PRIMARY KEY, which is id in this case
-            //and that is what we want to return
-            insertIDs[i] = rowid;
-        }
-        wdb.setTransactionSuccessful();
-        wdb.endTransaction();
-        return insertIDs;
-    }
 
     /**
      * This is for every sensor row
@@ -248,7 +177,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Return a list of trips for the current user that have unsent traces in the traces table
      * Does not include trips marked "live" (status=1). Those are only uploaded once finalized.
      *
-     * @param vitalOnly Only include "important" unsent traces, to save data. (GPS only)
+     * @param vitalOnly Only include "important" unsent traces, to save data. (GPS only if TRUE)
      * @return list of Trips with traces marked as unsent in the database
      */
     public List<Trip> getTripsWithUnsentTraces(boolean vitalOnly) {
@@ -300,9 +229,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return res;
     }
-    public List<TraceMessage> getUnsentTraces(String uuid, int limit) {
-        return getUnsentTraces(uuid, limit, false);
-    }
+
     /**
      * Get the gps points of a trip, which is identified by the start time (the name of the database)
      * @param uuid the id of the trip
@@ -364,25 +291,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void deleteTrip(String uuid) {
         ContentValues values = new ContentValues();
-        values.put("status", 0);
+        values.put("status", TripMetadata.DELETED);
         values.put("synced", false);
         wdb.update(TABLE_TRIP, values, "uuid='" + uuid + "'", null);
     }
 
     /**
-     * Finalize the trip with guid if it's not null otherwise finalize all
+     * Finalize all trips if it's not null otherwise finalize all
      * trips.
+     * 1. most time: it is finalize the last trip
+     * 2. it is suppose to be finalize only the last trip, but it cleans up every trips possible (when there are unexpected bugs)
      */
-    public void finalizeTrips() {
+    public void finalizeLiveTrips() {
         Log.d(TAG, "finalizing trips");
         ContentValues values = new ContentValues();
-        values.put("status", 2);
-        wdb.update(TABLE_TRIP, values, "status = 1", null);
+        values.put("status", Trip.FINALIZED);
+        wdb.update(TABLE_TRIP, values, "status = " + Trip.LIVE, null);
     }
 
     /**
      * Update a whole list of trips at once with the metadata in this list.
      * Performs sparse updates (ignoring null values)
+     * Called when downloading (or sync)
      * @param trips
      */
     public void updateTrips(List<TripMetadata> trips) {
@@ -424,7 +354,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         wdb.update(TABLE_TRIP, values, "uuid='" + trip.guid + "'", null);
     }
 
+    /**
+     * Used for displaying history trips
+     * @return
+     */
     public List<Trip> loadTrips() { return this.loadTrips(null); }
+
+    /**
+     * Used for load trips
+     * @param whereClause
+     * @return
+     * TODO: all sql related function should be in the database helper
+     */
     public List<Trip> loadTrips(String whereClause) {
 
         DriveSenseToken user = this.getCurrentUser();
@@ -471,6 +412,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return user;
     }
 
+
+    /**
+     * add a user record when the user logs in
+     * remove it upon log out
+     * @param token
+     */
     public void userLogin(DriveSenseToken token) {
         userLogout();
         ContentValues values = new ContentValues();
@@ -490,4 +437,76 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "user logout processing in database");
         wdb.delete(TABLE_USER, null, null);
     }
+
+    ////////////////////////////////////////For Trip Downloading///////////////////////////////////////////////////
+    /**
+     * Insert a list of TraceMessages in a bulk transaction to improve efficiency considerably
+     * @param tripUUID UUID of the trip.
+     * @param tmList Trace messages to insert
+     * @param synced Set to true for rows that already exist on the server (i.e. recently downloaded)
+     * @return List of the row IDs of the inserted objects in the order they were given
+     * @throws Exception
+     */
+    public long[] insertSensorData(String tripUUID, List<TraceMessage> tmList, boolean synced) throws Exception {
+        long[] insertIDs = new long[tmList.size()];
+        String selectQuery = "SELECT id FROM " + TABLE_TRIP + " WHERE uuid = '" + tripUUID + "';";
+        Cursor cursor = rdb.rawQuery(selectQuery, null);
+        cursor.moveToFirst();
+        if(cursor.getCount() == 0)
+            throw new Exception();
+        int tripID = cursor.getInt(0);
+        cursor.close();
+        wdb.beginTransaction();
+        for (int i = 0; i < tmList.size(); i++) {
+            TraceMessage tm = tmList.get(i);
+            ContentValues values = new ContentValues();
+            values.put("synced", synced);
+            values.put("value", GsonSingleton.toJson(tm));
+            values.put("type", tm.type);
+            values.put("tripid", tripID);
+            long rowid = wdb.insert(TABLE_TRACE, null, values);
+            //rowid is an alias for a column declared as INTEGER PRIMARY KEY, which is id in this case
+            //and that is what we want to return
+            insertIDs[i] = rowid;
+        }
+        wdb.setTransactionSuccessful();
+        wdb.endTransaction();
+        return insertIDs;
+    }
+
+    /**
+     * Insert a trip download (ONLY) from the server and all of its traces in one single transaction.
+     * If any parts fails, the whole thing will be rolled back.
+     * @param trip
+     * @param tmList
+     */
+    public void insertTripAndTraces(TripMetadata trip, List<TraceMessage> tmList) {
+        wdb.beginTransaction();
+        ContentValues values = new ContentValues();
+        values.put("uuid", trip.guid.toString());
+        //TODO: Starttime and endtime should be optionally stored. Only needed when custom values are set
+        if(tmList.size() > 0){
+            values.put("starttime", tmList.get(0).value.time);
+            values.put("endtime", tmList.get(tmList.size()-1).value.time);
+        }
+
+        values.put("distance", trip.distance);
+        values.put("status", trip.status);
+        values.put("synced", 1);
+        DriveSenseToken user = this.getCurrentUser();
+        if(user != null) {
+            values.put("email", user.email);
+        }
+        wdb.insert(TABLE_TRIP, null, values);
+
+        try {
+            insertSensorData(trip.guid, tmList, true);
+            wdb.setTransactionSuccessful();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(TAG, "Something went wrong inserting traces for a downloaded trip. Rolling back.");
+        }
+        wdb.endTransaction();
+    }
+
 }
