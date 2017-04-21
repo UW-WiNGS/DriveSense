@@ -60,6 +60,9 @@ public class TripService extends Service {
         public TripService getService() {return TripService.this;}
     }
 
+    //IMPORTANT: onStartCommand will be called automatically by Android after it has killed
+    // a service to reclaim memory and is then restarting it
+    // intent will be null in this case
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Start command called on TripService");
         if(intent == null) {
@@ -84,6 +87,9 @@ public class TripService extends Service {
         return START_STICKY;
     }
 
+    /**
+     * Display a running status on the Android status bar
+     */
     private void startForeground() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
@@ -95,6 +101,7 @@ public class TripService extends Service {
                 .setContentIntent(pendingIntent)
                 .build();
 
+        //make it less likely to be killed by Android
         startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 
@@ -109,7 +116,10 @@ public class TripService extends Service {
     }
 
     /**
-     * Start recording (assumes curtrip_ has already been initialized
+     * Start recording (assumes curtrip_ has already been initialized)
+     * Used to either start recording a new trip or resume recording after TripService was killed by Android
+     *
+     * If you want to start a new empty trip, call startRecordingNewTrip
      */
     private void startRecording() {
         lastSpeedNonzero = 0;
@@ -128,6 +138,8 @@ public class TripService extends Service {
         startSensors();
 
         Intent tsi = new Intent(this, TripService.class);
+        //trip service calls startService on itself when actively recording, to make sure it is persistent
+        // even if the activity bound to it unbinds
         startService(tsi);
         startForeground();
 
@@ -239,14 +251,11 @@ public class TripService extends Service {
                 message = new TraceMessage(tt);
             }
 
-
-
             boolean endTripAuto= SettingActivity.getEndTripAuto(context);
             if(!stoprecording) {
                 try {
                     tsw.addTrace(message, curtrip_.getDistance());
                     //update trip async?
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -267,6 +276,7 @@ public class TripService extends Service {
 
     };
 
+    //handle trace, by insert into database or upload
     private class TraceStorageWorker extends Thread {
         private static final String TAG = "TraceStorageWorker";
         private LinkedBlockingQueue<TraceMessage> traces;
@@ -296,16 +306,18 @@ public class TripService extends Service {
             return running;
         }
         public void run() {
+            //even if runnning == false we check size() to drain the queue of traces at the end
+            //if it is running, it does not check the size of traces
             while (running || traces.size()!=0) {
                 try {
                     ArrayList<TraceMessage> tmList = new ArrayList<>(traces.size());
                     traces.drainTo(tmList);
+                    DriveSenseApp.DBHelper().updateTrip(curtrip_);
                     long[] rowids = DriveSenseApp.DBHelper().insertSensorData(tripUUID, tmList, false);
                     for (int i = 0; i < tmList.size(); i++) {
                         TraceMessage tm = tmList.get(i);
                         tm.rowid = rowids[i];
-                        if(tm.value.getClass() == Trace.Trip.class)
-                        {
+                        if(tm.value.getClass() == Trace.Trip.class) {
                             //only add GPS traces to be sent right now. Other traces will be synced later on WiFi
                             unsentMessages.add(tm);
                         }
@@ -317,9 +329,8 @@ public class TripService extends Service {
                     e.printStackTrace();
                 }
 
+                //for real time uploading
                 if (!unsentMessages.isEmpty() && System.currentTimeMillis() - lastSent > SEND_INTERVAL && user != null) {
-                    //TODO: I don't think this is thread safe
-                    DriveSenseApp.DBHelper().updateTrip(curtrip_);
                     Log.d(TAG, "Worker queue size: "+traces.size());
                     Log.d(TAG, "Uploading " + unsentMessages.size() + " traces.");
                     TripPayload payload = new TripPayload();
@@ -329,6 +340,7 @@ public class TripService extends Service {
                     lastSent = System.currentTimeMillis();
                     unsentMessages = new ArrayList<>();
 
+                    //it will fail silently if there is no internet connection
                     TripUploadRequest.Start(payload, context);
                 }
             }

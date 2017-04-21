@@ -29,7 +29,7 @@ public class AuthLandingFragment extends Fragment {
     private final String TAG = "AuthLandingFragment";
     private EditText mEmailText;
     private EditText mPasswordText;
-    private static final int RC_SIGN_IN = 769;
+    private static final int GOOGLE_SIGN_IN = 769;
 
     public static AuthLandingFragment newInstance() {
         return new AuthLandingFragment();
@@ -68,7 +68,8 @@ public class AuthLandingFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(((UserActivity)self.getActivity()).mGoogleApiClient);
-                startActivityForResult(signInIntent, RC_SIGN_IN);
+                //it triggers onActivityResult function
+                startActivityForResult(signInIntent, GOOGLE_SIGN_IN);
             }
         });
 
@@ -77,6 +78,7 @@ public class AuthLandingFragment extends Fragment {
             public void onClick(View view) {
                 ArrayList<String> permissions = new ArrayList<String>();
                 permissions.add("email");
+                //it triggers onActivityResult function as well (implicitly)
                 LoginManager.getInstance().logInWithReadPermissions(self,permissions);
             }
         });
@@ -161,11 +163,15 @@ public class AuthLandingFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        ((UserActivity)this.getActivity()).callbackManager.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_SIGN_IN) {
+        if (requestCode == GOOGLE_SIGN_IN) {
+            //for google login, we assign the requestCode upon google signin is clicked
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             ((UserActivity)this.getActivity()).handleGoogleSignInResult(result);
+        } else {
+            //this is for facebook login, it is called by the facebook login manager, not by us
+            //we do not know the request code of facebook
+            ((UserActivity)this.getActivity()).callbackManager.onActivityResult(requestCode, resultCode, data);
         }
     }
 }

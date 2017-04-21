@@ -12,6 +12,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
     private static String TAG = "NetworkStateReceiver";
     private static Intent mUploaderIntent = null;
 
+    //This will not work from Android 7.0
     @Override
     public void onReceive(Context context, Intent intent) {
 

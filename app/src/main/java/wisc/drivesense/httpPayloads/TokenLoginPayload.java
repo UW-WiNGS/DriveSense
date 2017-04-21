@@ -5,10 +5,11 @@ package wisc.drivesense.httpPayloads;
  */
 
 public class TokenLoginPayload {
-    //Request
+    //from google
     public String id_token;
+    //from facebook
     public String access_token;
 
-    //Response
+    //Response: jwt token from drivesense server
     public String token;
 }

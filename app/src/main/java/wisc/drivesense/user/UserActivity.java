@@ -45,6 +45,9 @@ public class UserActivity extends AppCompatActivity {
         reland();
     }
 
+    /**
+     * refersh the page after signup or signin
+     */
     public void reland() {
         if(DriveSenseApp.DBHelper().getCurrentUser() != null) {
             getSupportFragmentManager().beginTransaction()
