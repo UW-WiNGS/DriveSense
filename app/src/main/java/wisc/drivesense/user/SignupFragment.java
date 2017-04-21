@@ -96,14 +96,20 @@ public class SignupFragment extends Fragment {
                 signup, SignupPayload.class) {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, error.getMessage());
                 Toast.makeText(self.getContext(), R.string.sign_up_error, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onResponse(SignupPayload response) {
                 // Display the first 500 characters of the response string.
-                Log.d(TAG,"Got a login token: " + response.token);
-                ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
+                if (response.token != null) {
+                    Log.d(TAG,"Got a login token: " + response.token);
+                    ((UserActivity)self.getActivity()).handleDrivesenseLogin(response.token);
+                } else {
+                    Log.d(TAG,"No login token in response");
+                    Toast.makeText(self.getContext(), R.string.sign_up_error, Toast.LENGTH_SHORT).show();
+                }
             }
         };
         // Add the request to the RequestQueue.

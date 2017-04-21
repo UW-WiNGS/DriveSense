@@ -100,6 +100,22 @@ public abstract class GsonRequest<T> extends Request<T> implements Response.List
         }
     }
 
+    /**
+     * Parse the byte array from an error response into a string
+     * so that calling getMessage() on a VolleyError will return a message
+     * @param volleyError
+     * @return
+     */
+    @Override
+    protected VolleyError parseNetworkError(VolleyError volleyError){
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null){
+            VolleyError error = new VolleyError(new String(volleyError.networkResponse.data));
+            volleyError = error;
+        }
+
+        return volleyError;
+    }
+
     public String getBodyContentType()
     {
         return "application/json";
