@@ -133,6 +133,9 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * used to slide to different pages, each page is one month trp
+     */
     public static class HistorySearchFragment extends Fragment {
 
         private final String TAG = "HistorySearchFragment";

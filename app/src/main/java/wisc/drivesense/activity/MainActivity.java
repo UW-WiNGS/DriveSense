@@ -65,36 +65,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean metricUnits;
     private Handler noGPSHandler = new Handler();
 
-    private class TripServiceConnection implements ServiceConnection {
-        private TripService.TripServiceBinder binder = null;
-
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            binder = ((TripService.TripServiceBinder) service);
-            boundTripService = binder.getService();
-            Log.d(TAG, "Bound to TripService");
-            updateButton();
-            if(binder.getService().getCurtrip()!= null) {
-                startElapsedTime();
-            }
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            binder = null;
-            boundTripService=null;
-        }
-    }
-
-    private Runnable noGPSRunnable = new Runnable() {
-        @Override
-        public void run() {
-            Log.d(TAG, "No GPS, resetting speed display.");
-            tvSpeed.setText("--.--");
-            if (boundTripService != null && boundTripService.getCurtrip() != null) {
-                Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
-                tvTotalDistance.setText(String.format("*%.2f", distance.value));
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +111,42 @@ public class MainActivity extends AppCompatActivity {
         bindTripService();
         updateButton();
     }
+
+
+    private class TripServiceConnection implements ServiceConnection {
+        private TripService.TripServiceBinder binder = null;
+
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            binder = ((TripService.TripServiceBinder) service);
+            boundTripService = binder.getService();
+            Log.d(TAG, "Bound to TripService");
+            updateButton();
+            if(binder.getService().getCurtrip()!= null) {
+                startElapsedTime();
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            binder = null;
+            boundTripService=null;
+        }
+    }
+
+    /**
+     * used to display when there is not GPS signal in x seconds
+     */
+    private Runnable noGPSRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "No GPS, resetting speed display.");
+            tvSpeed.setText("--.--");
+            if (boundTripService != null && boundTripService.getCurtrip() != null) {
+                Units.userFacingDouble distance = Units.largeDistance(boundTripService.getCurtrip().getDistance(), metricUnits);
+                tvTotalDistance.setText(String.format("*%.2f", distance.value));
+            }
+        }
+    };
+
 
     private void updateButton() {
         if (boundTripService != null && boundTripService.getCurtrip() != null) {
@@ -266,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void unbindTripService() {
-        Intent tsi = new Intent(this, TripService.class);
         unbindService(mTripConnection);
         mTripConnection = null;
     }
@@ -303,6 +308,8 @@ public class MainActivity extends AppCompatActivity {
         tvElapsed.setText(Units.displayTimeInterval(0));
     }
 
+
+    ////////////////////////////////real time map framgment//////////////////////////////////////////////////
     private void displayMapFragment() {
         findViewById(R.id.speed_display).setVisibility(View.GONE);
         findViewById(R.id.speed_unit).setVisibility(View.GONE);
@@ -334,10 +341,8 @@ public class MainActivity extends AppCompatActivity {
             mapFragment.addMarker(gps);
         }
     }
-    //
-    /**
-     * where we get the sensor data
-     */
+
+    //The trip service send the status to this activity
     private BroadcastReceiver mRecordingStatusChangedReciever = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -346,6 +351,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * where we get the sensor data
+     */
     private BroadcastReceiver mTraceMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
