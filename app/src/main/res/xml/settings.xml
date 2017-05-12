@@ -15,7 +15,7 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="App Settings">
         <ListPreference
-            android:defaultValue="Imperial"
+            android:defaultValue="2"
             android:title="Units"
             android:entries="@array/unit_types"
             android:entryValues="@array/unit_values"
